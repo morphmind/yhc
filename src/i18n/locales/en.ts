@@ -426,6 +426,45 @@ export const en = {
     }
   },
   hairAnalysis: {
+    success: {
+      backToSite: 'Back to Site',
+      viewResults: 'Click to view similar success stories',
+      title: 'Thank you, {name}!',
+      description: 'Your hair analysis request has been successfully received. Our medical team will review your case and contact you shortly.',
+      similarCases: {
+        title: 'Successful Results Similar to You',
+        description: 'Explore successful results from our patients with similar hair loss patterns.',
+        stats: {
+          timeframe: 'Timeframe',
+          grafts: 'Grafts',
+          age: 'Age',
+          rating: 'Rating'
+        }
+      },
+      cta: {
+        title: 'Would You Like to Achieve Similar Results?',
+        description: 'Dr. Yakışıklı and his expert team are ready to create the most suitable treatment plan for you.',
+        whatsapp: 'Chat on WhatsApp',
+        call: 'Call Now'
+      }
+    },
+    privacyConsent: {
+      title: 'Privacy Policy',
+      description: 'Please read our privacy policy before submitting your analysis request.',
+      accept: 'I Accept',
+      content: `By submitting this form, you agree to receive communications regarding your hair analysis from Yakışıklı Hair Clinic. We take your privacy seriously and are committed to protecting your personal information.
+
+Key Points:
+• Your personal information will be used solely for providing hair analysis consultation services
+• We will contact you via email and phone to discuss your hair analysis results
+• Your data is stored securely and encrypted
+• We never share your information with third parties
+• You can request deletion of your data at any time
+
+For more details, please read our full privacy policy.`,
+      checkbox: 'I agree to the privacy policy and consent to receiving communications about my hair analysis',
+      required: 'You must accept the privacy policy to continue'
+    },
     toast: {
       error: {
         title: "Error",
@@ -462,8 +501,8 @@ export const en = {
         title: 'You are',
         description: 'Select your gender for personalized analysis',
         options: {
-          male: 'A man',
-          female: 'A woman',
+          male: 'Male',
+          female: 'Female',
         },
       },
       ageRange: {

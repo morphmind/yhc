@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { toast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
+import { Label } from '@/components/ui/label';
 
 interface SuccessStory {
   id: string;
@@ -33,6 +34,7 @@ interface SuccessStory {
   rating: number;
   testimonial: string;
   created_at: string;
+  pattern_match?: string[];
 }
 
 interface SuccessStoriesTableProps {
@@ -46,9 +48,12 @@ export function SuccessStoriesTable({ stories, onEdit, onDelete, onRefresh }: Su
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [patternFilter, setPatternFilter] = React.useState<string[]>([]);
   const [typeFilter, setTypeFilter] = React.useState('all');
   const [languageFilter, setLanguageFilter] = React.useState('all');
   const [statusFilter, setStatusFilter] = React.useState('all');
+  const [graftRangeFilter, setGraftRangeFilter] = React.useState('all');
+  const [ageRangeFilter, setAgeRangeFilter] = React.useState('all');
   const [sortField, setSortField] = React.useState<keyof SuccessStory>('created_at');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
   const [selectedStories, setSelectedStories] = React.useState<string[]>([]);
@@ -58,12 +63,34 @@ export function SuccessStoriesTable({ stories, onEdit, onDelete, onRefresh }: Su
     const matchesSearch = story.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          story.patient_country.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          story.testimonial.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
+    // Pattern filter
+    const matchesPattern = patternFilter.length === 0 || 
+      patternFilter.some(pattern => story.pattern_match?.includes(pattern));
+
+    // Graft range filter
+    const matchesGraftRange = graftRangeFilter === 'all' || (
+      graftRangeFilter === '0-2000' ? story.grafts <= 2000 :
+      graftRangeFilter === '2000-3000' ? story.grafts > 2000 && story.grafts <= 3000 :
+      graftRangeFilter === '3000-4000' ? story.grafts > 3000 && story.grafts <= 4000 :
+      graftRangeFilter === '4000-5000' ? story.grafts > 4000 && story.grafts <= 5000 :
+      story.grafts > 5000
+    );
+
+    // Age range filter
+    const matchesAgeRange = ageRangeFilter === 'all' || (
+      ageRangeFilter === '18-30' ? story.age >= 18 && story.age <= 30 :
+      ageRangeFilter === '31-40' ? story.age >= 31 && story.age <= 40 :
+      ageRangeFilter === '41-50' ? story.age >= 41 && story.age <= 50 :
+      story.age > 50
+    );
+
     const matchesType = typeFilter === 'all' || story.type === typeFilter;
     const matchesLanguage = languageFilter === 'all' || story.language === languageFilter;
     const matchesStatus = statusFilter === 'all' || story.status === statusFilter;
 
-    return matchesSearch && matchesType && matchesLanguage && matchesStatus;
+    return matchesSearch && matchesPattern && matchesType && matchesLanguage && 
+           matchesStatus && matchesGraftRange && matchesAgeRange;
   });
 
   // Sort stories
@@ -189,13 +216,72 @@ export function SuccessStoriesTable({ stories, onEdit, onDelete, onRefresh }: Su
         </div>
       )}
       {/* Filters */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Input
           placeholder="Ara..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full"
         />
+
+        {/* Pattern Filter */}
+        <div className="space-y-2">
+          <Label>Saç Dökülme Paterni</Label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: 'none', label: 'Yok' },
+              { value: 'light', label: 'Hafif' },
+              { value: 'slight-crown', label: 'Hafif Tepe' },
+              { value: 'strong-crown', label: 'Güçlü Tepe' },
+              { value: 'semi-bald', label: 'Yarı Kel' },
+              { value: 'bald', label: 'Kel' }
+            ].map(pattern => (
+              <Button
+                key={pattern.value}
+                variant={patternFilter.includes(pattern.value) ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setPatternFilter(prev => 
+                    prev.includes(pattern.value)
+                      ? prev.filter(p => p !== pattern.value)
+                      : [...prev, pattern.value]
+                  );
+                }}
+              >
+                {pattern.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Graft Range Filter */}
+        <Select value={graftRangeFilter} onValueChange={setGraftRangeFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Greft Aralığı" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tüm Greft Aralıkları</SelectItem>
+            <SelectItem value="0-2000">0-2000 Greft</SelectItem>
+            <SelectItem value="2000-3000">2000-3000 Greft</SelectItem>
+            <SelectItem value="3000-4000">3000-4000 Greft</SelectItem>
+            <SelectItem value="4000-5000">4000-5000 Greft</SelectItem>
+            <SelectItem value="5000+">5000+ Greft</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Age Range Filter */}
+        <Select value={ageRangeFilter} onValueChange={setAgeRangeFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Yaş Aralığı" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tüm Yaş Aralıkları</SelectItem>
+            <SelectItem value="18-30">18-30 Yaş</SelectItem>
+            <SelectItem value="31-40">31-40 Yaş</SelectItem>
+            <SelectItem value="41-50">41-50 Yaş</SelectItem>
+            <SelectItem value="50+">50+ Yaş</SelectItem>
+          </SelectContent>
+        </Select>
 
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger>
@@ -326,7 +412,19 @@ export function SuccessStoriesTable({ stories, onEdit, onDelete, onRefresh }: Su
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium">{story.patient_name}</span>
-                    <span className="text-sm text-muted-foreground">{story.patient_country}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-sm text-muted-foreground">{story.patient_country}</span>
+                      {story.pattern_match?.map((pattern) => (
+                        <Badge key={pattern} variant="outline" className="text-xs">
+                          {pattern === 'none' ? 'Yok' :
+                           pattern === 'light' ? 'Hafif' :
+                           pattern === 'slight-crown' ? 'Hafif Tepe' :
+                           pattern === 'strong-crown' ? 'Güçlü Tepe' :
+                           pattern === 'semi-bald' ? 'Yarı Kel' :
+                           'Kel'}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>

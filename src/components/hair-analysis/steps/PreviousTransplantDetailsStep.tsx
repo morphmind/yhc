@@ -27,12 +27,27 @@ export function PreviousTransplantDetailsStep({
   onNext,
 }: PreviousTransplantDetailsStepProps) {
   const { t } = useTranslation();
-  const [details, setDetails] = React.useState<TransplantDetails>({
-    timeframe: '',
-    clinic: '',
-    grafts: '',
-    technique: '',
-    results: '',
+  const [details, setDetails] = React.useState<TransplantDetails>(() => {
+    try {
+      // Try to parse existing details from formData
+      return formData.previousTransplantDetails 
+        ? JSON.parse(formData.previousTransplantDetails)
+        : {
+          timeframe: '',
+          clinic: '',
+          grafts: '',
+          technique: '',
+          results: '',
+        };
+    } catch (e) {
+      return {
+        timeframe: '',
+        clinic: '',
+        grafts: '',
+        technique: '',
+        results: '',
+      };
+    }
   });
   const [hoveredTimeframe, setHoveredTimeframe] = React.useState<string | null>(null);
 

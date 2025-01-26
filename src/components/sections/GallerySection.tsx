@@ -15,12 +15,13 @@ import {
   ArrowLeft,
   Play,
   Sparkles,
-  Filter
+  Filter,
+  RefreshCw
 } from 'lucide-react';
 
-interface SliderState {
-  position: number;
-  isDragging: boolean;
+interface DragState {
+  startX: number;
+  startPosition: number;
 }
 
 export function GallerySection() {
@@ -31,10 +32,11 @@ export function GallerySection() {
   const [error, setError] = React.useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState('all');
   const [hoveredCase, setHoveredCase] = useState<number | null>(null);
-  const [sliderPosition, setSliderPosition] = useState<Record<number, number>>({});
-  const [isDragging, setIsDragging] = useState<Record<number, boolean>>({});
+  const [sliderPositions, setSliderPositions] = useState<Record<number, number>>({});
+  const [draggingId, setDraggingId] = useState<number | null>(null);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const sliderRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const dragStateRef = useRef<DragState | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 
@@ -79,13 +81,18 @@ export function GallerySection() {
   const fetchStories = async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
         .from('success_stories')
         .select('*')
         .eq('status', 'published') 
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error('Failed to fetch success stories');
+      }
 
       const transformedData = data?.map(story => ({
         id: story.id,
@@ -105,10 +112,10 @@ export function GallerySection() {
       })) || [];
 
       setCases(transformedData);
-      setError(null);
+
     } catch (err: any) {
       console.error('Error fetching stories:', err);
-      setError(err.message);
+      setError(err.message || 'Failed to load success stories');
       setCases([]);
     } finally {
       setLoading(false);
@@ -144,100 +151,87 @@ export function GallerySection() {
 
   useEffect(() => {
     const newPositions: Record<number, number> = {};
-    const newDragging: Record<number, boolean> = {};
-    
-    filteredCases.forEach(item => {
-      newPositions[item.id] = sliderPosition[item.id] ?? 50;
-      newDragging[item.id] = isDragging[item.id] ?? false;
+    paginatedCases.forEach(story => {
+      if (!(story.id in sliderPositions)) {
+        newPositions[story.id] = 50;
+      }
     });
+    if (Object.keys(newPositions).length > 0) {
+      setSliderPositions(prev => ({ ...prev, ...newPositions }));
+    }
+  }, [paginatedCases, sliderPositions]);
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent, caseId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    setSliderPosition(newPositions);
-    setIsDragging(newDragging);
-  }, [filteredCases.map(item => item.id).join(',')]);
-
-  const handleMouseDown = (e: React.MouseEvent, caseId: number) => {
-    e.preventDefault();
-    setIsDragging(prev => ({
-      ...prev,
-      [caseId]: true
-    }));
-    handleMouseMove(e, caseId);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent, caseId: number) => {
-    e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const sliderRef = sliderRefs.current[caseId];
-
-    if (!isDragging[caseId] || !sliderRef) return;
+    if (!sliderRef) return;
 
     const rect = sliderRef.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const percentage = (x / rect.width) * 100;
+    const currentPosition = sliderPositions[caseId] ?? 50;
 
-    setSliderPosition(prev => ({
-      ...prev,
-      [caseId]: percentage
-    }));
-  };
-
-  const handleTouchStart = (e: React.TouchEvent, caseId: number) => {
-    e.preventDefault();
-    setIsDragging(prev => ({
-      ...prev,
-      [caseId]: true
-    }));
-    handleTouchMove(e, caseId);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent, caseId: number) => {
-    e.preventDefault();
-    const sliderRef = sliderRefs.current[caseId];
+    dragStateRef.current = {
+      startX: clientX,
+      startPosition: currentPosition
+    };
     
-    if (!isDragging[caseId] || !sliderRef) return;
+    setDraggingId(caseId);
+  };
 
-    const touch = e.touches[0];
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent, caseId: number) => {
+    if (draggingId !== caseId || !dragStateRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const sliderRef = sliderRefs.current[caseId];
+    if (!sliderRef) return;
+
     const rect = sliderRef.getBoundingClientRect();
-    const x = Math.max(0, Math.min(touch.clientX - rect.left, rect.width));
-    const percentage = (x / rect.width) * 100;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const deltaX = clientX - dragStateRef.current.startX;
+    const deltaPercent = (deltaX / rect.width) * 100;
+    const newPosition = Math.max(0, Math.min(100, dragStateRef.current.startPosition + deltaPercent));
 
-    setSliderPosition(prev => ({
+    setSliderPositions(prev => ({
       ...prev,
-      [caseId]: percentage
+      [caseId]: newPosition
     }));
   };
 
-  const handleMouseUp = (caseId: number) => {
-    setIsDragging(prev => ({
-      ...prev,
-      [caseId]: false
-    }));
+  const handleDragEnd = (caseId: number) => {
+    if (draggingId !== caseId) return;
+    
+    dragStateRef.current = null;
+    setDraggingId(null);
   };
 
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      Object.keys(isDragging).forEach(id => {
-        handleMouseUp(Number(id));
-      });
-    };
-    
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      Object.keys(isDragging).forEach(id => {
-        if (isDragging[Number(id)]) {
-          handleMouseMove(e as unknown as React.MouseEvent, Number(id));
-        }
-      });
+    const handleGlobalMove = (e: MouseEvent | TouchEvent) => {
+      if (draggingId !== null) {
+        handleDragMove(e, draggingId);
+      }
     };
 
-    document.addEventListener('mouseup', handleGlobalMouseUp);
-    document.addEventListener('mouseleave', handleGlobalMouseUp);
-    document.addEventListener('mousemove', handleGlobalMouseMove);
+    const handleGlobalEnd = () => {
+      if (draggingId !== null) {
+        handleDragEnd(draggingId);
+      }
+    };
+
+    document.addEventListener('mousemove', handleGlobalMove);
+    document.addEventListener('mouseup', handleGlobalEnd);
+    document.addEventListener('touchmove', handleGlobalMove);
+    document.addEventListener('touchend', handleGlobalEnd);
 
     return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('mouseleave', handleGlobalMouseUp);
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mousemove', handleGlobalMove);
+      document.removeEventListener('mouseup', handleGlobalEnd);
+      document.removeEventListener('touchmove', handleGlobalMove);
+      document.removeEventListener('touchend', handleGlobalEnd);
     };
-  }, [isDragging]);
+  }, [draggingId]);
 
   return (
     <div className="relative py-24 overflow-hidden">
@@ -280,7 +274,7 @@ export function GallerySection() {
                 "bg-white/80 dark:bg-white/5 backdrop-blur-md",
                 "border border-black/[0.08] dark:border-white/[0.08]",
                 "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
-                "hover:shadow-[0_4px_8px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_4px_8px_rgba(255,255,255,0.1)]",
+                "hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
                 "transition-all duration-300",
                 activeFilter === filter.id ? "bg-primary dark:bg-white text-white dark:text-primary border-transparent" : ""
               )}
@@ -294,11 +288,25 @@ export function GallerySection() {
 
         {loading ? (
           <div className="flex items-center justify-center min-h-[200px]">
-            <div className="w-12 h-12 rounded-full border-2 border-primary dark:border-white border-t-transparent animate-spin" />
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full border-2 border-primary dark:border-white border-t-transparent animate-spin" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 blur-lg animate-pulse" />
+            </div>
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 dark:text-red-400">
-            <p>{error}</p>
+          <div className="flex flex-col items-center justify-center min-h-[200px] gap-4">
+            <div className="text-center text-red-500 dark:text-red-400 font-medium">
+              <p>{error}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchStories()}
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </Button>
           </div>
         ) : cases.length === 0 ? (
           <div className="text-center text-muted-foreground">
@@ -323,11 +331,9 @@ export function GallerySection() {
                   {/* Before/After Slider */}
                   <div 
                     ref={el => sliderRefs.current[item.id] = el}
-                    className="relative aspect-[4/3] cursor-ew-resize"
-                    onMouseDown={e => handleMouseDown(e, item.id)}
-                    onTouchStart={e => handleTouchStart(e, item.id)}
-                    onTouchMove={e => handleTouchMove(e, item.id)}
-                    onTouchEnd={() => handleMouseUp(item.id)}
+                    className="relative aspect-[4/3]"
+                    onMouseDown={e => handleDragStart(e, item.id)}
+                    onTouchStart={e => handleDragStart(e, item.id)}
                     style={{ touchAction: 'none', overflow: 'hidden' }}
                   >
                     {/* Before Image */}
@@ -342,8 +348,9 @@ export function GallerySection() {
 
                     {/* After Image */}
                     <div 
-                      className="absolute inset-0 overflow-hidden transition-all duration-75"
-                      style={{ clipPath: `inset(0 ${100 - (sliderPosition[item.id] ?? 50)}% 0 0)` }}
+                      data-after-image
+                      className="absolute inset-0 overflow-hidden transition-none"
+                      style={{ clipPath: `inset(0 ${100 - (sliderPositions[item.id] ?? 50)}% 0 0)` }}
                     >
                       <img
                         src={item.afterImage}
@@ -355,26 +362,34 @@ export function GallerySection() {
 
                     {/* Slider Handle */}
                     <div 
-                      className="absolute top-0 bottom-0 w-0.5 bg-white cursor-ew-resize z-10 transition-all duration-75 shadow-[0_0_10px_rgba(0,0,0,0.3)]"
-                      style={{ left: `${sliderPosition[item.id] ?? 50}%` }}
+                      data-slider-handle
+                      className="absolute top-0 bottom-0 w-[2px] bg-white z-10 transition-none cursor-ew-resize"
+                      style={{ left: `${sliderPositions[item.id] ?? 50}%` }}
                     >
-                      <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center">
-                        <div className="flex gap-0.5">
-                          <ArrowLeft className="w-3 h-3 text-primary" />
-                          <ArrowRight className="w-3 h-3 text-primary" />
+                      <div className={cn(
+                        "absolute top-1/2 -translate-y-1/2 -translate-x-1/2",
+                        "w-12 h-12 rounded-full",
+                        "bg-white/90 backdrop-blur-sm",
+                        "shadow-[0_0_0_4px_rgba(255,255,255,0.3),0_4px_16px_rgba(0,0,0,0.2)]",
+                        "flex items-center justify-center",
+                        "transition-all duration-300",
+                        draggingId === item.id ? "scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]" : ""
+                      )}>
+                        <div className="flex items-center gap-1">
+                          <ArrowLeft className="w-4 h-4 text-primary" />
+                          <ArrowRight className="w-4 h-4 text-primary" />
                         </div>
-                        <div className="absolute inset-0 border-2 border-white/50 rounded-full animate-[pulse_2s_ease-in-out_infinite]" />
                       </div>
                     </div>
 
                     {/* Labels */}
-                    <div className="absolute top-4 left-4 z-10">
-                      <div className="px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
+                    <div className="absolute top-6 left-6 z-10">
+                      <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
                         {t.treatments.gallery.labels.before}
                       </div>
                     </div>
-                    <div className="absolute top-4 right-4 z-10">
-                      <div className="px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
+                    <div className="absolute top-6 right-6 z-10">
+                      <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
                         {t.treatments.gallery.labels.after}
                       </div>
                     </div>

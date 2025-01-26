@@ -20,11 +20,29 @@ interface MedicalQuestion {
 
 export function MedicalHistoryStep({ formData, setFormData, onNext }: MedicalHistoryStepProps) {
   const { t } = useTranslation();
-  const [questions, setQuestions] = React.useState<MedicalQuestion[]>([
-    { id: 'allergies', title: t.hairAnalysis.steps.medical.allergies.title, answer: null },
-    { id: 'conditions', title: t.hairAnalysis.steps.medical.conditions.title, answer: null },
-    { id: 'medications', title: t.hairAnalysis.steps.medical.medications.title, answer: null },
-  ]);
+  const [questions, setQuestions] = React.useState<MedicalQuestion[]>(() => {
+    // Initialize with existing data from formData
+    return [
+      { 
+        id: 'allergies', 
+        title: t.hairAnalysis.steps.medical.allergies.title, 
+        answer: formData.allergies?.length > 0 || null,
+        details: formData.allergies?.join('\n') || ''
+      },
+      { 
+        id: 'conditions', 
+        title: t.hairAnalysis.steps.medical.conditions.title, 
+        answer: formData.medicalConditions?.length > 0 || null,
+        details: formData.medicalConditions?.join('\n') || ''
+      },
+      { 
+        id: 'medications', 
+        title: t.hairAnalysis.steps.medical.medications.title, 
+        answer: formData.medications?.length > 0 || null,
+        details: formData.medications?.join('\n') || ''
+      },
+    ];
+  });
   const [hoveredQuestion, setHoveredQuestion] = React.useState<string | null>(null);
 
   const handleAnswer = (id: string, answer: boolean) => {

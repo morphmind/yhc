@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, Mail, Instagram, Moon, Sun, Facebook, Youtube, MessageCircle, ChevronDown } from 'lucide-react';
 import { useContext } from 'react';
 import { HairAnalysisFormData } from '@/types';
@@ -24,6 +24,19 @@ import { Button } from '@/components/ui/button';
 import { LoadingOverlay } from '@/components/ui/loading-overlay';
 import { useSubmissionStore } from '@/utils/submitAnalysis';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { SuccessStoriesModal } from '@/components/ui/success-stories-modal';
+import { useNavigate } from 'react-router-dom';
+
+// Load saved form data from localStorage if exists
+const getSavedFormData = (): HairAnalysisFormData => {
+  try {
+    const saved = localStorage.getItem('hairAnalysisFormData');
+    return saved ? JSON.parse(saved) : initialFormData;
+  } catch (error) {
+    console.error('Error loading saved form data:', error);
+    return initialFormData;
+  }
+};
 
 const steps = [
   { id: stepIds.personal },
@@ -38,10 +51,12 @@ const steps = [
 ];
 
 const initialFormData: HairAnalysisFormData = {
-  fullName: '',
+  firstName: '',
+  lastName: '',
   email: '',
   phone: '',
   age: null,
+  ageRange: { min: 18, max: 60 }, // Added ageRange with default values
   gender: '' as 'male' | 'female' | 'other',
   country: '',
   hairLossType: '',
@@ -50,21 +65,51 @@ const initialFormData: HairAnalysisFormData = {
   familyHistory: false,
   medicalConditions: [],
   medications: [],
+  allergies: [],
   previousTransplants: null,
   previousTransplantDetails: '',
   preferredTechnique: '',
   budgetRange: '',
   timeframe: '',
-  photos: {},
+  photos: {}, // Record<string, string>
 };
 
 export default function HairAnalysis() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<HairAnalysisFormData>(initialFormData);
+  const [formData, setFormData] = useState<HairAnalysisFormData>(getSavedFormData());
   const { currentLocale, setCurrentLocale } = useContext(LocaleContext);
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
   const { loading, message } = useSubmissionStore();
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const progressRef = React.useRef<HTMLDivElement>(null);
+  const [showSuccessStories, setShowSuccessStories] = useState(false);
+  const [matchingStories, setMatchingStories] = useState<any[]>([]);
+  const [selectedPattern, setSelectedPattern] = useState('');
+
+  // Listen for success stories event
+  React.useEffect(() => {
+    const handleSuccessStories = (e: CustomEvent<{ stories: any[], pattern: string }>) => {
+      setMatchingStories(e.detail.stories);
+      setSelectedPattern(e.detail.pattern);
+      setShowSuccessStories(true);
+    };
+
+    window.addEventListener('showSuccessStories', handleSuccessStories as EventListener);
+    return () => {
+      window.removeEventListener('showSuccessStories', handleSuccessStories as EventListener);
+    };
+  }, []);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('hairAnalysisFormData', JSON.stringify(formData));
+    } catch (error) {
+      console.error('Error saving form data:', error);
+    }
+  }, [formData]);
 
   const getStepConfig = (stepId: string) => {
     const config = t.hairAnalysis.steps[stepId as keyof typeof t.hairAnalysis.steps];
@@ -75,53 +120,18 @@ export default function HairAnalysis() {
     return config;
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      // If we're on the Medical History step and user didn't have previous transplants
-      // Skip the Previous Transplant Details step when going back
-      if (currentStep === 6 && !formData.previousTransplants) {
-        setCurrentStep(4); // Go back to Previous Transplant step
-      } else {
-        setCurrentStep(prev => prev - 1);
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleSubmit = async () => {
+  // Clear form data when analysis is submitted successfully
+  const handleSubmitSuccess = async () => {
     try {
-      // Validate required fields
-      if (!formData.gender || !formData.ageRange || !formData.hairLossType || !formData.hairLossDuration) {
-        toast({
-          variant: "destructive", 
-          title: t.hairAnalysis.toast.error.title,
-          description: t.hairAnalysis.toast.error.requiredFields
-        });
-        return;
-      }
-
       const success = await submitAnalysis(formData, t);
       if (success) {
-        toast({
-          title: t.hairAnalysis.toast.success.title,
-          description: t.hairAnalysis.toast.success.description
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: t.hairAnalysis.toast.error.title, 
-          description: t.hairAnalysis.toast.error.submitError
-        });
+        localStorage.removeItem('hairAnalysisFormData');
+        setFormData(initialFormData);
+        // Use replace to prevent back navigation to form
+        navigate('/hair-analysis/success', { state: { fromSubmission: true }, replace: true });
       }
     } catch (error) {
-      console.error('Error submitting analysis:', error);
+      console.error('Submission error:', error);
       toast({
         variant: "destructive",
         title: t.hairAnalysis.toast.error.title,
@@ -130,23 +140,65 @@ export default function HairAnalysis() {
     }
   };
 
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(prev => prev + 1);
+      // Save form data to localStorage
+      localStorage.setItem('hairAnalysisFormData', JSON.stringify(formData));
+      setTimeout(() => {
+        // Check if form content is taller than viewport
+        if (formRef.current && progressRef.current) {
+          const formHeight = formRef.current.scrollHeight;
+          const viewportHeight = window.innerHeight;
+          const progressTop = progressRef.current.offsetTop;
+
+          if (formHeight > viewportHeight) {
+            // Scroll to progress bar with offset
+            window.scrollTo({
+              top: progressTop - 20,
+              behavior: 'smooth'
+            });
+          } else {
+            // If content fits viewport, scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }, 100); // Small delay to ensure DOM is updated
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      // If we're on the Previous Transplant Details step and user didn't have previous transplants
+      // Skip the Previous Transplant Details step when going back
+      if (currentStep === 6 && !formData.previousTransplants) {
+        setCurrentStep(4); // Go back to Previous Transplant step
+      } else {
+        setCurrentStep(prev => prev - 1);
+      }
+      // Save form data to localStorage
+      localStorage.setItem('hairAnalysisFormData', JSON.stringify(formData));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const getCurrentStepMessage = () => {
     const stepId = steps[currentStep].id;
     const messages = t.hairAnalysis.doctor.messages;
     const message = messages[stepId as keyof typeof messages];
-    
+
     // If we're on the Previous Transplant Details step and no message exists,
     // use the previous transplant message
     if (stepId === 'previousDetails' && !message) {
       return messages.previousDetails;
     }
-    
+
     // If we're on the Medical History step and no message exists,
     // use the medical message
     if (stepId === 'medical' && !message) {
       return messages.medical;
     }
-    
+
     return message || '';
   };
 
@@ -204,7 +256,7 @@ export default function HairAnalysis() {
           <FinalStep
             formData={formData}
             setFormData={setFormData}
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmitSuccess}
           />
         );
       default:
@@ -215,21 +267,21 @@ export default function HairAnalysis() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/95 relative">
       {/* Loading Overlay */}
-      <LoadingOverlay 
-        isVisible={loading} 
+      <LoadingOverlay
+        isVisible={loading}
         message={message}
         submitterName={formData.firstName ? `${formData.firstName} ${formData.lastName}` : undefined}
       />
-      
+
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary/5 via-background to-background border-b border-border/50 py-6 z-10">
         <div className="container max-w-7xl mx-auto px-4">
           {/* Desktop Header */}
-          <div className="hidden md:block">
+          <div className="hidden md:block mb-4">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <img
-                  src="https://yakisiklihairclinic.com/wp-content/uploads/2023/03/yakisikli-logo-2.png" 
+                  src="https://yakisiklihairclinic.com/wp-content/uploads/2023/03/yakisikli-logo-2.png"
                   alt="Yakisikli Hair Clinic"
                   className="h-16 w-auto transition-transform hover:scale-105"
                 />
@@ -240,45 +292,45 @@ export default function HairAnalysis() {
                   <span className="text-sm font-medium">{t.header.contact.phone}</span>
                 </a>
                 <div className="flex items-center gap-4">
-                  <a 
-                    href="https://instagram.com/yakisiklihairclinic" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://instagram.com/yakisiklihairclinic"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Instagram className="h-4 w-4" />
                   </a>
-                  <a 
-                    href="https://facebook.com/yakisiklihairclinic" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://facebook.com/yakisiklihairclinic"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Facebook className="h-4 w-4" />
                   </a>
-                  <a 
-                    href="https://youtube.com/yakisiklihairclinic" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://youtube.com/yakisiklihairclinic"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Youtube className="h-4 w-4" />
                   </a>
-                  <a 
-                    href="mailto:info@yakisiklihairclinic.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="mailto:info@yakisiklihairclinic.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
                   >
                     <Mail className="h-4 w-4" />
                   </a>
-                  <a 
-                    href="https://wa.me/902122427171" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://wa.me/902122427171"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
                   >
-                    <MessageCircle className="h-4 w-4" />
+                    <MessageCircle className="h-4 w-4 text-primary" />
                   </a>
                 </div>
                 <div className="flex items-center gap-4">
@@ -319,12 +371,12 @@ export default function HairAnalysis() {
               </div>
             </div>
           </div>
-          
+
           {/* Mobile Header */}
           <div className="md:hidden space-y-4 relative z-20">
             <div className="flex items-center justify-between">
               <img
-                src="https://yakisiklihairclinic.com/wp-content/uploads/2023/03/yakisikli-logo-2.png" 
+                src="https://yakisiklihairclinic.com/wp-content/uploads/2023/03/yakisikli-logo-2.png"
                 alt="Yakisikli Hair Clinic"
                 className="h-10 w-auto"
               />
@@ -379,23 +431,24 @@ export default function HairAnalysis() {
             </div>
           </div>
         </div>
-        
-        <div className="text-center max-w-3xl mx-auto mt-12 md:mt-6 pb-6 relative z-10">
-          {currentStep === 0 && (
-            <>
-              <h1 className="text-3xl md:text-5xl !leading-[1.2] font-bold bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent mb-3">
-                {t.hairAnalysis.title}
-              </h1>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                {t.hairAnalysis.description}
-              </p>
-            </>
-          )}
-        </div>
       </div>
-      
-      <div className="container max-w-4xl mx-auto px-4 py-12">
+
+      <div className="text-center max-w-3xl mx-auto mt-12 md:mt-6 pb-6 relative z-10">
+        {currentStep === 0 && (
+          <>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl !leading-[1.2] font-bold bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent dark:from-primary dark:via-secondary dark:to-secondary mb-3 dark:drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">
+              {t.hairAnalysis.title}
+            </h1>
+            <p className="text-base text-muted-foreground dark:text-white/80 leading-relaxed max-w-2xl mx-auto">
+              {t.hairAnalysis.description}
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="container max-w-4xl mx-auto px-4 py-8 sm:py-10">
         <ProgressHeader
+          ref={progressRef}
           currentStep={currentStep}
           totalSteps={steps.length}
           progress={stepProgress[steps[currentStep].id as keyof typeof stepProgress]}
@@ -405,17 +458,25 @@ export default function HairAnalysis() {
           description={getStepConfig(steps[currentStep].id).description}
         />
 
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
-          <div className="space-y-6 mb-12">
+        <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 mb-8">
             {renderStep()}
           </div>
-          
+
           <DoctorFeedback
             message={getCurrentStepMessage()}
             doctorInfo={doctorInfo}
           />
         </form>
       </div>
+
+      {/* Success Stories Modal */}
+      <SuccessStoriesModal
+        isOpen={showSuccessStories}
+        onClose={() => setShowSuccessStories(false)}
+        stories={matchingStories}
+        pattern={selectedPattern}
+      />
     </div>
   );
 }

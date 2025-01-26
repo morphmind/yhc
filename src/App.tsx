@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AdminLogin from './pages/admin/login';
 import AdminDashboard from './pages/admin/dashboard';
 import AdminPanel from './pages/admin/panel';
+import AnalysisSuccess from './pages/hair-analysis/success';
 import DoctorPage from './pages/doctor';
 import Header from './components/layout/Header';
 import HairAnalysis from './pages/hair-analysis';
@@ -42,6 +43,7 @@ function App() {
         <div className="min-h-screen">
           <Routes>
             <Route path="/hair-analysis" element={<HairAnalysis />} />
+            <Route path="/hair-analysis/success" element={<AnalysisSuccess />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/about/dr-mustafa-yakisikli" element={<DoctorPage />} />
             <Route path="/admin/panel" element={<AdminPanel />} />

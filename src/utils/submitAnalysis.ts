@@ -5,7 +5,15 @@ import { emailjsConfig } from '@/config/emailjs';
 import { telegramConfig } from '@/config/telegram';
 import { toast } from '@/hooks/useToast';
 import { create } from 'zustand';
+import { compressImage } from './imageCompression';
 import { supabase } from '@/lib/supabase';
+
+// Initialize EmailJS with public key
+try {
+  emailjs.init(emailjsConfig.publicKey);
+} catch (error) {
+  console.error('EmailJS initialization error:', error);
+}
 
 interface SubmissionStore {
   loading: boolean;
@@ -28,7 +36,46 @@ export async function submitAnalysis(formData: HairAnalysisFormData, t: any): Pr
   setLoading(true);
   setMessage(t.hairAnalysis.toast.loading.steps.processing);
 
+  let photoUrls: Record<string, string> = {};
+
   try {
+    // Process photos first if they exist
+    const hasPhotos = Object.keys(formData.photos).length > 0 && Object.values(formData.photos).some(file => file instanceof File);
+    
+    if (hasPhotos) {
+      setMessage(t.hairAnalysis.toast.loading.steps.uploading);
+      
+      for (const [type, file] of Object.entries(formData.photos)) {
+        try {
+          // Skip if not a valid File object
+          if (!(file instanceof File)) continue;
+
+          // Compress and upload photo
+          const compressedFile = await compressImage(file);
+          const timestamp = Date.now();
+          const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileName = `${timestamp}-${type}-${safeFileName}`;
+          const filePath = `submissions/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('hair-analysis-photos')
+            .upload(filePath, compressedFile);
+
+          if (uploadError) throw uploadError;
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('hair-analysis-photos')
+            .getPublicUrl(filePath);
+
+          photoUrls[type] = publicUrl;
+        } catch (error) {
+          console.error(`Error processing ${type} photo:`, error);
+          // Continue with other photos even if one fails
+        }
+      }
+    }
+
     // Validate required fields
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.country) {
       toast({
@@ -39,191 +86,136 @@ export async function submitAnalysis(formData: HairAnalysisFormData, t: any): Pr
       setLoading(false);
       return false;
     }
+    
+    // Save to Supabase
+    setMessage(t.hairAnalysis.toast.loading.steps.sending);
+
+    // Save submission to database
+    const { error: dbError } = await supabase
+      .from('hair_analysis_submissions')
+      .insert([{
+        gender: formData.gender,
+        age_range: formData.ageRange,
+        hair_loss_type: formData.hairLossType,
+        hair_loss_duration: formData.hairLossDuration,
+        previous_transplants: formData.previousTransplants || false, // Default to false if null
+        previous_transplant_details: formData.previousTransplantDetails,
+        medical_conditions: formData.medicalConditions || [],
+        medications: formData.medications || [],
+        allergies: formData.allergies || [],
+        photos: photoUrls,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        country: formData.country,
+        status: 'new'
+      }]);
+
+    if (dbError) throw dbError;
 
     // Format data for messaging
-    const whatsappContent = formatAnalysisDataForWhatsApp(formData);
-
-    // Save to Supabase
-    try {
-      setMessage(t.hairAnalysis.toast.loading.steps.sending);
-      
-      // Convert photos to a format suitable for storage
-      const photoUrls: Record<string, string> = {};
-      
-      // Process each photo
-      for (const [type, file] of Object.entries(formData.photos)) {
-        setMessage(t.hairAnalysis.toast.loading.steps.uploading);
-        try {
-          // Upload photo to Supabase Storage
-          const fileName = `${Date.now()}-${type}-${file.name}`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('hair-analysis-photos')
-            .upload(`submissions/${fileName}`, file);
-
-          if (uploadError) throw uploadError;
-
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('hair-analysis-photos')
-            .getPublicUrl(`submissions/${fileName}`);
-
-          photoUrls[type] = publicUrl;
-        } catch (error) {
-          console.error(`Error uploading ${type} photo:`, error);
-        }
-      }
-
-      const { error: dbError } = await supabase
-        .from('hair_analysis_submissions')
-        .insert([{
-          gender: formData.gender,
-          age_range: formData.ageRange,
-          hair_loss_type: formData.hairLossType,
-          hair_loss_duration: formData.hairLossDuration,
-          previous_transplants: formData.previousTransplants,
-          previous_transplant_details: formData.previousTransplantDetails,
-          medical_conditions: formData.medicalConditions,
-          medications: formData.medications,
-          allergies: formData.allergies,
-          photos: photoUrls,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          country: formData.country,
-          status: 'new'
-        }]);
-
-      if (dbError) throw dbError;
-    } catch (error) {
-      console.error('Error saving to database:', error);
-      // Continue with other operations even if database save fails
-    }
-
-    // Show loading toast
-    setMessage(t.hairAnalysis.toast.loading.steps.email);
-
-    // Initialize EmailJS
-    emailjs.init(emailjsConfig.publicKey);
-
-    // Send email using EmailJS
-    const emailResult = await emailjs.send(
-      emailjsConfig.serviceId,
-      emailjsConfig.templateId,
-      {
-        to_email: 'vipkaan@gmail.com',
-        message: whatsappContent
-      }
-    );
-
-    if (emailResult.status !== 200) {
-      throw new Error('Failed to send email');
-    }
-
-    // Send to Telegram if configured
-    const { botToken, chatId } = telegramConfig;
-    
-    if (botToken && chatId) {
-      setMessage(t.hairAnalysis.toast.loading.steps.sending);
-      try {
-        // Send the form data first
-        const messageResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: whatsappContent,
-            parse_mode: 'HTML',
-            disable_web_page_preview: true,
-          }),
-        });
-
-        if (!messageResponse.ok) {
-          throw new Error('Failed to send message to Telegram');
-        }
-
-        // Parse response
-        const messageResult = await messageResponse.json();
-        if (!messageResult.ok) {
-          console.error('Telegram API error:', messageResult);
-          throw new Error(messageResult.description || 'Failed to send message to Telegram');
-        }
-
-        // Wait for the message to be sent
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Send photos if any exist
-        if (Object.keys(formData.photos).length > 0) {
-          const photoPromises = Object.entries(formData.photos).map(([type, file]) => {
-            const photoData = new FormData();
-            photoData.append('chat_id', chatId);
-            photoData.append('photo', file);
-            photoData.append('caption', `${type.charAt(0).toUpperCase() + type.slice(1)} view photo`);
-
-            return fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-              method: 'POST',
-              body: photoData,
-            }).then(async (response) => {
-              if (!response.ok) {
-                const error = await response.json();
-                throw new Error(`Failed to send photo: ${error.description || 'Unknown error'}`);
-              }
-              return response;
-            });
-          });
-
-          // Send photos in parallel with error handling
-          try {
-            await Promise.all(photoPromises);
-          } catch (error) {
-            console.error('Error sending photos:', error);
-            // Continue despite photo upload errors
-          }
-        }
-      } catch (error) {
-        console.error('Error sending to Telegram:', error);
-        // Show warning but don't fail the submission
-        toast({
-          variant: "warning",
-          title: "Uyarı",
-          description: "Telegram'a gönderilirken hata oluştu fakat form başarıyla iletildi.",
-        });
-      }
-    }
-
-    setLoading(false);
-    
-    // Show success message
-    toast({
-      title: t.hairAnalysis.toast.success.title,
-      description: t.hairAnalysis.toast.success.description.replace(
-        '{name}',
-        `${formData.firstName} ${formData.lastName}`
-      ),
-      duration: Infinity, // Make toast persistent until manually closed
-      onClose: () => {
-        toast.dismiss();
-        setLoading(false); // Only remove loading overlay when toast is closed
-      }
+    const whatsappContent = formatAnalysisDataForWhatsApp({
+      ...formData,
+      photos: photoUrls,
     });
 
-    // Open WhatsApp with pre-filled message
-    const whatsappNumber = '905360344866';
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappContent)}`;
-    window.open(whatsappUrl, '_blank');
+    // Send notifications
+    await Promise.all([
+      // Send email
+      emailjsConfig.publicKey ? 
+        emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, {
+          to_email: 'vipkaan@gmail.com',
+          message: whatsappContent,
+          date: new Date().toLocaleString('tr-TR'),
+          gender: formData.gender === 'male' ? 'Erkek' : 'Kadın',
+          ageRange: formData.ageRange ? `${formData.ageRange.min}-${formData.ageRange.max || '+'}` : '',
+          hairLossType: formData.hairLossType,
+          hairLossDuration: formData.hairLossDuration,
+          previousTransplants: formData.previousTransplants ? 'Evet' : 'Hayır',
+          previousTransplantDetails: formData.previousTransplantDetails || '',
+          medicalConditions: formData.medicalConditions?.join(', ') || '',
+          medications: formData.medications?.join(', ') || '',
+          allergies: formData.allergies?.join(', ') || '',
+          photoCount: Object.keys(photoUrls).length
+        }).catch(error => {
+          console.error('EmailJS error:', error);
+          // Don't fail submission if email fails
+          return null;
+        })
+      : Promise.resolve(null),
+
+      // Send Telegram message if configured
+      telegramConfig.botToken && telegramConfig.chatId ? (
+        Promise.all([
+          // Send text message
+          fetch(`https://api.telegram.org/bot${telegramConfig.botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: telegramConfig.chatId,
+              text: whatsappContent,
+              parse_mode: 'HTML',
+              disable_web_page_preview: true
+            })
+          }),
+          // Send photos if they exist
+          ...Object.entries(photoUrls).map(([type, url]) =>
+            fetch(`https://api.telegram.org/bot${telegramConfig.botToken}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: telegramConfig.chatId,
+                photo: url,
+                caption: `${formData.firstName} ${formData.lastName} - ${type} görünüm`,
+                parse_mode: 'HTML'
+              })
+            })
+          )
+        ])
+      ) : Promise.resolve()
+    ]).catch(error => {
+      console.error('Error sending notifications:', error);
+      // Don't fail submission if notifications fail
+    });
+
+    // Save data for success page
+    sessionStorage.setItem('analysisFormData', JSON.stringify({
+      ...formData,
+      photos: photoUrls
+    }));
+
+    // Get matching stories
+    const { data: stories, error: storiesError } = await supabase
+      .from('success_stories')
+      .select('*')
+      .contains('pattern_match', [formData.hairLossType])
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (storiesError) throw storiesError;
+
+    if (stories?.length > 0) {
+      sessionStorage.setItem('matchingStories', JSON.stringify(stories));
+    }
+
+    toast({
+      title: t.hairAnalysis.toast.success.title,
+      description: t.hairAnalysis.toast.success.description.replace('{name}', formData.firstName)
+    });
 
     return true;
+
   } catch (error) {
     console.error('Error submitting analysis:', error);
     toast({
       variant: "destructive",
       title: t.hairAnalysis.toast.error.title,
-      description: t.hairAnalysis.toast.error.submitError,
-      duration: Infinity,
-      onClose: () => toast.dismiss()
+      description: t.hairAnalysis.toast.error.submitError
     });
     return false;
+  } finally {
+    setLoading(false);
   }
 }

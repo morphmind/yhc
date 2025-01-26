@@ -1,7 +1,7 @@
 export const emailjsConfig = {
   serviceId: 'service_yakisikli',
   templateId: 'template_yakisikli',
-  publicKey: '92IzeFfrl3n6wKFNk',
+  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '',
   template: {
     subject: "Yeni Saç Analizi Talebi - {{date}}",
     html: `

@@ -13,7 +13,7 @@ interface ProgressHeaderProps {
   description: string;
 }
 
-export function ProgressHeader({
+export const ProgressHeader = React.forwardRef<HTMLDivElement, ProgressHeaderProps>(({
   currentStep,
   totalSteps,
   progress,
@@ -21,11 +21,11 @@ export function ProgressHeader({
   onNext,
   title,
   description,
-}: ProgressHeaderProps) {
+}, ref) => {
   const { t } = useTranslation();
 
   return (
-    <div className="mb-20">
+    <div ref={ref} className="mb-12 sm:mb-16">
       {/* Progress Navigation */}
       <div className="w-full mb-8">
         {/* Navigation Controls */}
@@ -89,14 +89,16 @@ export function ProgressHeader({
       </div>
 
       {/* Title and Description */}
-      <div className="text-center max-w-2xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl !leading-[1.2] font-bold bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent mb-4 sm:mb-6 leading-[1.3] sm:leading-[1.4]">
+      <div className="text-center max-w-2xl mx-auto px-4">
+        <h2 className="text-2xl sm:text-3xl !leading-[1.2] font-bold bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent dark:from-primary dark:via-secondary dark:to-secondary mb-3 sm:mb-4 dark:drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">
           {title}
         </h2>
-        <p className="text-muted-foreground text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
+        <p className="text-muted-foreground dark:text-white/80 text-base leading-relaxed max-w-xl mx-auto">
           {description}
         </p>
       </div>
     </div>
   );
-}
+});
+
+ProgressHeader.displayName = 'ProgressHeader';

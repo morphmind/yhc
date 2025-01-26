@@ -426,6 +426,36 @@ export const tr = {
     }
   },
   hairAnalysis: {
+    success: {
+      backToSite: 'Siteye Dön',
+      viewResults: 'Benzer başarı hikayelerini görmek için tıklayın',
+      title: 'Teşekkürler, {name}!',
+      description: 'Saç analizi talebiniz başarıyla alındı. Medikal ekibimiz durumunuzu inceleyip en kısa sürede sizinle iletişime geçecek.',
+      similarCases: {
+        title: 'Size Benzer Başarılı Sonuçlar',
+        description: 'Sizinle benzer saç dökülme patternine sahip hastalarımızın başarılı sonuçlarını inceleyin.',
+        stats: {
+          timeframe: 'Süre',
+          grafts: 'Greft',
+          age: 'Yaş',
+          rating: 'Değerlendirme'
+        }
+      },
+      cta: {
+        title: 'Siz de Benzer Sonuçlar Elde Etmek İster misiniz?',
+        description: 'Dr. Yakışıklı ve uzman ekibi, sizin için en uygun tedavi planını oluşturmak için hazır.',
+        whatsapp: 'WhatsApp\'tan Yazın',
+        call: 'Hemen Arayın'
+      }
+    },
+    privacyConsent: {
+      title: 'Gizlilik Politikası',
+      description: 'Lütfen analiz talebinizi göndermeden önce gizlilik politikamızı okuyun.',
+      accept: 'Kabul Ediyorum',
+      content: 'Bu formu göndererek, Yakışıklı Hair Clinicten saç analizinizle ilgili iletişim almayı kabul etmiş olursunuz. Gizliliğinizi ciddiye alıyor ve kişisel bilgilerinizi korumaya özen gösteriyoruz.',
+      checkbox: 'Gizlilik politikasını kabul ediyor ve saç analizimle ilgili iletişim kurmaya onay veriyorum',
+      required: 'Devam etmek için gizlilik politikasını kabul etmelisiniz'
+    },
     toast: {
       error: {
         title: "Hata",
@@ -454,7 +484,7 @@ export const tr = {
       back: 'Geri',
       next: 'İleri',
       previous: 'Önceki',
-      forward: 'İleri',
+      forward: 'Sonraki',
       step: 'ADIM'
     },
     steps: {
@@ -638,7 +668,7 @@ export const tr = {
       back: 'Geri',
       next: 'İleri',
       previous: 'Önceki',
-      forward: 'İleri',
+      forward: 'Sonraki',
       step: 'ADIM'
     }
   },

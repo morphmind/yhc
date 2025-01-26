@@ -22,6 +22,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 interface SuccessStoryFormProps {
   onSuccess?: () => void;
@@ -38,6 +39,7 @@ export function SuccessStoryForm({
   const [formData, setFormData] = React.useState({
     type: initialData?.type || '',
     status: initialData?.status || 'published',
+    pattern_match: initialData?.pattern_match || [],
     language: initialData?.language || 'en',
     before_image: initialData?.before_image || '',
     after_image: initialData?.after_image || '',
@@ -165,6 +167,7 @@ export function SuccessStoryForm({
       // Numeric veri dönüştürme
       const processedData = {
         ...formData,
+        pattern_match: formData.pattern_match,
         grafts,
         age,
         rating,
@@ -333,6 +336,54 @@ export function SuccessStoryForm({
           (örn: .jpg, .png)
         </AlertDescription>
       </Alert>
+
+      {/* Pattern Match */}
+      <div className="space-y-2">
+        <Label>Saç Dökülme Paterni</Label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { value: 'none', label: 'Saç dökülmesi yok' },
+            { value: 'light', label: 'Hafif saç çizgisi çekilmesi' },
+            { value: 'slight-crown', label: 'Saç çizgisi + hafif tepe' },
+            { value: 'strong-crown', label: 'Belirgin çekilme + tepe' },
+            { value: 'semi-bald', label: 'Yarı kel' },
+            { value: 'bald', label: 'Kel' }
+          ].map(pattern => (
+            <Button
+              key={pattern.value}
+              type="button"
+              variant={formData.pattern_match.includes(pattern.value) ? "default" : "outline"}
+              className={cn(
+                "h-auto py-2 px-3 text-sm justify-start",
+                formData.pattern_match.includes(pattern.value) 
+                  ? "bg-primary text-white" 
+                  : "hover:bg-primary/10"
+              )}
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  pattern_match: prev.pattern_match.includes(pattern.value)
+                    ? prev.pattern_match.filter(p => p !== pattern.value)
+                    : [...prev.pattern_match, pattern.value]
+                }));
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "w-4 h-4 rounded-full border-2",
+                  formData.pattern_match.includes(pattern.value)
+                    ? "border-white bg-white/20"
+                    : "border-primary"
+                )} />
+                <span>{pattern.label}</span>
+              </div>
+            </Button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Birden fazla pattern seçebilirsiniz. Seçilen pattern'ler bu başarı hikayesinin hangi saç dökülme tipleriyle eşleşeceğini belirler.
+        </p>
+      </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div className="space-y-2">

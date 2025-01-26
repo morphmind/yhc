@@ -14,7 +14,9 @@ export function PreviousTransplantStep({ formData, setFormData, onNext }: Previo
   const [hoveredOption, setHoveredOption] = React.useState<boolean | null>(null);
 
   const handleSelect = (value: boolean) => {
-    setFormData({ ...formData, previousTransplants: value });
+    // Ensure boolean value
+    const boolValue = Boolean(value);
+    setFormData({ ...formData, previousTransplants: boolValue });
     if (value) {
       onNext(); // Go to Previous Transplant Details
     } else {

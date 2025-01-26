@@ -1,6 +1,11 @@
 import imageCompression from 'browser-image-compression';
 
-export async function compressImage(file: File) {
+export async function compressImage(file: File): Promise<File> {
+  // Validate input
+  if (!(file instanceof File)) {
+    throw new Error('Invalid input: Expected File object');
+  }
+
   const options = {
     maxSizeMB: 1, // Max file size in MB
     maxWidthOrHeight: 1920, // Max width/height
@@ -14,6 +19,6 @@ export async function compressImage(file: File) {
     return compressedFile;
   } catch (error) {
     console.error('Error compressing image:', error);
-    return file; // Return original file if compression fails
+    throw error; // Propagate error for proper handling
   }
 }

@@ -4,7 +4,10 @@ import AdminLogin from './pages/admin/login';
 import AdminDashboard from './pages/admin/dashboard';
 import AdminPanel from './pages/admin/panel';
 import AnalysisSuccess from './pages/hair-analysis/success';
+import HairTransplantPage from './pages/treatments/hair';
+import AfroHairTransplantPage from './pages/treatments/afro';
 import DoctorPage from './pages/doctor';
+import ClinicPage from './pages/clinic';
 import Header from './components/layout/Header';
 import HairAnalysis from './pages/hair-analysis';
 import { LocaleProvider } from './contexts/LocaleContext';
@@ -45,7 +48,10 @@ function App() {
             <Route path="/hair-analysis" element={<HairAnalysis />} />
             <Route path="/hair-analysis/success" element={<AnalysisSuccess />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/about/dr-mustafa-yakisikli" element={<DoctorPage />} />
+            <Route path="/treatments/hair" element={<HairTransplantPage />} />
+            <Route path="/treatments/afro" element={<AfroHairTransplantPage />} />
+            <Route path="/dr-mustafa-yakisikli" element={<DoctorPage />} />
+            <Route path="/clinic" element={<ClinicPage />} />
             <Route path="/admin/panel" element={<AdminPanel />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/" element={

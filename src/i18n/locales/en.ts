@@ -766,3 +766,211 @@ For more details, please read our full privacy policy.`,
     }
   }
 };
+
+export const clinic = {
+  title: 'Yakışıklı Hair Clinic',
+  description: 'Experience world-class hair transplantation in our state-of-the-art facility in Fethiye, Turkey.',
+  meta: {
+    title: 'Hair Transplant Clinic in Turkey - Yakışıklı Hair Clinic Fethiye',
+    description: 'Discover our modern hair transplant clinic in Fethiye, Turkey. State-of-the-art facilities, experienced medical team, and international quality standards.',
+    keywords: 'hair transplant clinic turkey, hair clinic fethiye, yakisikli clinic, hair transplant facility'
+  },
+  hero: {
+    badge: 'State-of-the-Art Facility',
+    title: {
+      highlight: 'Modern Hair Transplant',
+      main: 'Clinic in Fethiye'
+    },
+    description: 'Our clinic combines cutting-edge technology with comfort and luxury to provide you with the best possible hair transplant experience.',
+    virtualTour: 'Take a Virtual Tour',
+    location: 'View Location',
+    stats: {
+      area: {
+        value: '1,500m²',
+        label: 'Facility Area'
+      },
+      rooms: {
+        value: '6',
+        label: 'Operating Rooms'
+      },
+      capacity: {
+        value: '20+',
+        label: 'Daily Capacity'
+      },
+      staff: {
+        value: '30+',
+        label: 'Medical Staff'
+      }
+    }
+  },
+  features: {
+    title: 'Clinic Features',
+    description: 'Our clinic is designed to provide the highest standards of medical care in a comfortable and luxurious environment.',
+    items: {
+      equipment: {
+        title: 'Modern Equipment',
+        description: 'Latest technology and advanced medical equipment for optimal results'
+      },
+      sterile: {
+        title: 'Sterile Environment',
+        description: 'Hospital-grade sterilization systems and clean room standards'
+      },
+      comfort: {
+        title: 'Patient Comfort',
+        description: 'Luxurious amenities and comfortable recovery areas'
+      },
+      technology: {
+        title: 'Smart Systems',
+        description: 'Digital patient tracking and monitoring systems'
+      }
+    }
+  },
+  facilities: {
+    title: 'Our Facilities',
+    description: 'Take a tour of our modern clinic facilities designed for your comfort and care.',
+    items: {
+      operatingRoom: {
+        title: 'Operating Rooms',
+        description: 'State-of-the-art operating rooms equipped with the latest technology',
+        features: [
+          'Advanced air filtration system',
+          'HD surgical microscopes',
+          'Digital imaging systems',
+          'Ergonomic design'
+        ]
+      },
+      consultation: {
+        title: 'Consultation Rooms',
+        description: 'Private consultation rooms for detailed hair analysis',
+        features: [
+          'Hair analysis systems',
+          'Digital planning software',
+          'Comfortable seating',
+          'Privacy screens'
+        ]
+      },
+      recovery: {
+        title: 'Recovery Areas',
+        description: 'Comfortable recovery rooms for post-operation care',
+        features: [
+          'Adjustable beds',
+          'Entertainment systems',
+          'Climate control',
+          'Nurse call system'
+        ]
+      },
+      vip: {
+        title: 'VIP Lounge',
+        description: 'Exclusive VIP area for premium comfort',
+        features: [
+          'Private waiting area',
+          'Refreshment service',
+          'Business facilities',
+          'Personal assistant'
+        ]
+      }
+    }
+  },
+  technology: {
+    title: 'Our Technology',
+    description: 'We invest in the latest medical technology to ensure the best possible results.',
+    items: {
+      analysis: {
+        title: 'Hair Analysis Systems',
+        description: 'Advanced digital systems for accurate hair analysis'
+      },
+      microscopes: {
+        title: 'HD Microscopes',
+        description: 'High-definition microscopes for precise graft preparation'
+      },
+      implanter: {
+        title: 'DHI Implanters',
+        description: 'Latest DHI technology for natural-looking results'
+      },
+      monitoring: {
+        title: 'Patient Monitoring',
+        description: 'Digital systems for real-time patient monitoring'
+      }
+    }
+  },
+  location: {
+    title: 'Location & Transportation',
+    description: 'Conveniently located in the heart of Fethiye with easy access to transportation.',
+    address: 'Babataşı, Celal Bayar Cd. 81/1, 48850 Muğla/Fethiye',
+    transportation: {
+      title: 'Getting Here',
+      options: {
+        airport: {
+          title: 'From Airport',
+          description: 'VIP transfer service from Dalaman Airport (45 minutes)'
+        },
+        public: {
+          title: 'Public Transport',
+          description: 'Regular bus services from city center'
+        },
+        parking: {
+          title: 'Parking',
+          description: 'Free private parking available'
+        }
+      }
+    },
+    nearby: {
+      title: 'Nearby Amenities',
+      hotels: 'Partner Hotels',
+      restaurants: 'Restaurants',
+      shopping: 'Shopping Centers',
+      attractions: 'Tourist Attractions'
+    }
+  },
+  certifications: {
+    title: 'Certifications & Accreditations',
+    description: 'Our clinic maintains the highest standards of medical care and safety.',
+    items: {
+      jci: {
+        title: 'JCI Accreditation',
+        description: 'Joint Commission International quality standards'
+      },
+      iso: {
+        title: 'ISO 9001:2015',
+        description: 'Quality management system certification'
+      },
+      health: {
+        title: 'Ministry of Health',
+        description: 'Licensed and approved by Turkish Ministry of Health'
+      },
+      tshd: {
+        title: 'TSHD Member',
+        description: 'Turkish Society of Hair Restoration member'
+      }
+    }
+  },
+  virtualTour: {
+    title: 'Virtual Clinic Tour',
+    description: 'Take a virtual tour of our modern facility.',
+    cta: 'Start Tour',
+    areas: {
+      reception: 'Reception Area',
+      consultation: 'Consultation Rooms',
+      operating: 'Operating Rooms',
+      recovery: 'Recovery Area',
+      vip: 'VIP Lounge'
+    }
+  },
+  contact: {
+    title: 'Contact Us',
+    description: 'Get in touch with us for any questions or to schedule a consultation.',
+    form: {
+      name: 'Full Name',
+      email: 'Email Address',
+      phone: 'Phone Number',
+      message: 'Your Message',
+      submit: 'Send Message'
+    },
+    info: {
+      phone: '+90 536 034 48 66',
+      email: 'info@yakisiklihairclinic.com',
+      hours: 'Monday - Saturday: 09:00 - 18:00',
+      whatsapp: 'WhatsApp Support'
+    }
+  }
+};

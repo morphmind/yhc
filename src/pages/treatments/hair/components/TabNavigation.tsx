@@ -126,14 +126,14 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               "relative h-12 gap-3 px-6 rounded-full group",
               "bg-white/80 dark:bg-white/5 backdrop-blur-md",
               "border border-black/[0.08] dark:border-white/[0.08]",
-              "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
+              "shadow-[0_4px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_12px_rgba(255,255,255,0.12)]",
               "hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
               "transition-all duration-300 hover:scale-[1.02]",
               activeTab === tab.id ? cn(
                 "bg-gradient-to-br",
                 gradients[tab.id as keyof typeof gradients],
-                "dark:bg-none dark:bg-white border-transparent",
-                "text-white dark:text-primary"
+                "border-transparent text-foreground dark:text-white",
+                "shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
               ) : ""
             )}
             onClick={() => onTabChange(tab.id)}
@@ -141,24 +141,24 @@ export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
             <div className="flex items-center gap-3">
               <div className={cn(
                 "w-6 h-6 rounded-lg flex items-center justify-center",
-                "bg-white/20 dark:bg-white/10",
+                "bg-white/30 dark:bg-white/10 backdrop-blur-sm",
                 "transition-colors",
                 activeTab === tab.id ? "shadow-glow" : ""
               )}>
                 <tab.icon className={cn(
                   "w-3.5 h-3.5 transition-colors",
                   activeTab === tab.id
-                    ? "text-white dark:text-primary"
+                    ? "text-foreground dark:text-white"
                     : hoveredTab === tab.id
                     ? iconColors[tab.id as keyof typeof iconColors]
-                    : "text-primary dark:text-white"
+                    : "text-primary/90 dark:text-white/80"
                 )} />
               </div>
               <span className="font-medium">{tab.label}</span>
               {activeTab === tab.id && (
                 <ChevronRight className={cn(
                   "w-4 h-4 ml-1 transition-transform",
-                  "text-white dark:text-primary",
+                  "text-foreground dark:text-white",
                   "group-hover:translate-x-0.5"
                 )} />
               )}

@@ -318,7 +318,7 @@ export const en = {
         },
         technologies: {
           title: 'Our Technologies',
-          microSapphire: 'Micro Sapphire',
+          microSapphire: 'Micro Sapphire DHI Hair Transplant',
           dhi: 'DHI Hair Transplant',
           sapphireFue: 'Sapphire FUE Hair Transplant',
           needleFree: 'Needle Free Anaesthesia',

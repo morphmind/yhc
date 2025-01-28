@@ -7,20 +7,32 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src")
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   optimizeDeps: {
-    exclude: ['lucide-react'],
+    include: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-slot'],
+    exclude: [],
+    esbuildOptions: {
+      target: 'esnext',
+    }
   },
   server: {
-    // Add these settings to prevent timeout issues
+    host: true,
+    port: 5173,
     hmr: {
-      timeout: 5000
+      timeout: 30000,
+      overlay: true,
+      protocol: 'ws',
+      clientPort: 5173
     },
     watch: {
       usePolling: true,
       interval: 1000
+    },
+    fs: {
+      strict: false,
+      allow: ['..']
     }
   }
 });

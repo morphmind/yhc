@@ -6,9 +6,16 @@ import { HeroSection } from './components/HeroSection';
 import { ContentSection } from './components/ContentSection';
 import { CTASection } from './components/CTASection';
 
-export default function AfroHairTransplantPage() {
+export default function BeardTransplantPage() {
   const { t } = useTranslation();
   const { selectedCurrency, updateCurrency } = useCurrency();
+
+  // Update meta tags
+  React.useEffect(() => {
+    document.title = t.beardTransplant.meta.title;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', t.beardTransplant.meta.description);
+    document.querySelector('meta[name="keywords"]')?.setAttribute('content', t.beardTransplant.meta.keywords);
+  }, [t.beardTransplant.meta]);
 
   const handleAnalysisClick = () => window.location.href = '/hair-analysis';
   const handleWhatsAppClick = () => window.open('https://wa.me/905360344866', '_blank');
@@ -21,23 +28,18 @@ export default function AfroHairTransplantPage() {
         onCurrencyChange={updateCurrency}
       />
       
-      <div id="hero">
-        <HeroSection 
-          onAnalysisClick={handleAnalysisClick}
-          onWhatsAppClick={handleWhatsAppClick}
-        />
-      </div>
-      
-      <div id="content">
-        <ContentSection />
-      </div>
+      <HeroSection 
+        onAnalysisClick={handleAnalysisClick}
+        onWhatsAppClick={handleWhatsAppClick}
+      />
+
+      <ContentSection />
 
       <CTASection 
         onAnalysisClick={handleAnalysisClick}
         onWhatsAppClick={handleWhatsAppClick}
         onCallClick={handleCallClick}
       />
-
     </div>
   );
 }

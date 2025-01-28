@@ -1,18 +1,18 @@
-// src/components/sections/HeroSection.tsx
-
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Award, Calendar, CheckCircle, Sprout, Play, ChevronRight, Star, Shield, Users } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useTheme } from '@/hooks/useTheme'
-import { cn } from '@/lib/utils'
-import { useTranslation } from '@/hooks/useTranslation'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Award, Calendar, CheckCircle, Sprout, Play, ChevronRight, Star, Shield, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
+import { SuccessStoriesSlider } from '@/components/sections/SuccessStoriesSlider';
 
 export function HeroSection() {
-  const { t } = useTranslation()
-  const { theme } = useTheme()
-  const [hoveredStat, setHoveredStat] = useState<number | null>(null)
-  const [hoveredPlatform, setHoveredPlatform] = useState<string | null>(null)
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const [hoveredStat, setHoveredStat] = React.useState<number | null>(null);
+  const [hoveredPlatform, setHoveredPlatform] = React.useState<string | null>(null);
+  const [hoveredButton, setHoveredButton] = React.useState<string | null>(null);
 
   const platforms = [
     {
@@ -121,7 +121,7 @@ export function HeroSection() {
       gradient: 'from-amber-500/20 to-orange-500/20 dark:from-amber-500/30 dark:to-orange-500/30',
       iconColor: 'text-amber-500 dark:text-amber-400',
     },
-  ]
+  ];
 
   return (
     <div className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
@@ -141,25 +141,33 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="container relative z-[5] px-4 md:px-6 pt-40 md:pt-28 lg:pt-32">
+      <div className="container relative z-[5] px-4 md:px-6 pt-32 md:pt-24 lg:pt-20">
         <div className="max-w-[85rem] mx-auto">
-          <div className="grid lg:grid-cols-7 lg:gap-x-8 xl:gap-x-12 lg:items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-4">
+            <div className="relative">
               {/* Badge Premium */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.04)] mb-6 sm:mb-8 relative z-[15] group transition-all duration-300 hover:scale-[1.02] mt-4 sm:mt-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary dark:bg-white"></span>
-                <span className="badge-text whitespace-nowrap">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.04)] mb-6 relative z-[15] group transition-all duration-300 hover:scale-[1.02]">
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary animate-pulse"></div>
+                <span className="text-sm font-medium text-foreground/80 dark:text-white/80 whitespace-nowrap">
                   {t.home.hero.badge || 'Premium Saç Ekimi Merkezi'}
                 </span>
               </div>
 
+              {/* Decorative Elements */}
+              <div className="absolute -top-[10%] -left-[10%] w-[300px] h-[300px] bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+              <div className="absolute -bottom-[10%] -right-[10%] w-[250px] h-[250px] bg-gradient-to-br from-secondary/20 to-primary/20 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+              
               {/* Main Heading */}
-              <h1 className="block font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl !leading-[1.2] tracking-tight relative z-[5]">
-                <span className="text-primary dark:text-white">
+              <h1 className="block font-bold text-4xl sm:text-5xl md:text-6xl !leading-[1.1] tracking-tight relative z-[5] mb-2">
+                <span className={cn(
+                  "bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent",
+                  "font-[750]",
+                  "dark:brightness-125"
+                )}>
                   {t.home.hero.title.highlight}
                 </span>
-                <span className="block mt-2 sm:mt-3 lg:mt-4">
+                <span className="block mt-2 sm:mt-3">
                   <span className="text-foreground dark:text-white">
                     {t.home.hero.title.main}
                   </span>
@@ -167,31 +175,32 @@ export function HeroSection() {
               </h1>
 
               {/* Subheading */}
-              <p className="mt-4 sm:mt-5 md:mt-6 text-sm sm:text-base md:text-lg text-muted-foreground dark:text-white/70 leading-relaxed max-w-3xl relative z-[5]">
+              <p className="mt-6 sm:mt-8 text-base sm:text-lg text-muted-foreground dark:text-white/70 leading-relaxed max-w-xl relative z-[5]">
                 {t.home.hero.description}
               </p>
 
               {/* CTA Buttons */}
-              <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 grid gap-3 sm:gap-4 w-full sm:inline-flex relative z-[5]">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 relative z-[5]">
                 <Link to="/hair-analysis">
                   <Button
                     size="lg"
                     className={cn(
                       "w-full sm:w-auto relative group overflow-hidden",
-                      "bg-primary dark:bg-white text-white dark:text-primary",
-                      "h-11 sm:h-12 md:h-14 text-sm sm:text-base md:text-lg px-6 sm:px-8 md:px-10",
+                      "bg-gradient-to-r from-primary via-primary to-secondary hover:from-primary/90 hover:via-primary/90 hover:to-secondary/90",
+                      "dark:from-white dark:via-white dark:to-white/95 dark:hover:from-white/90 dark:hover:via-white/90 dark:hover:to-white/85",
+                      "text-white dark:text-primary",
+                      "h-11 sm:h-12 text-sm sm:text-base px-6 sm:px-8",
                       "rounded-full transition-all duration-300",
                       "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
                       "hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
-                      "hover:translate-y-[-1px]",
-                      "hover:bg-primary/90 dark:hover:bg-white/90",
-                      "active:translate-y-[1px]",
-                      "active:shadow-none"
+                      "hover:scale-[1.02] active:scale-[0.98]"
                     )}
                   >
                     <span className="flex items-center justify-center gap-2">
                       {t.home.hero.cta.analysis}
-                      <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+                      <div className="w-5 h-5 rounded-full bg-white/20 dark:bg-black/10 flex items-center justify-center">
+                        <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                      </div>
                     </span>
                   </Button>
                 </Link>
@@ -199,112 +208,84 @@ export function HeroSection() {
                   size="lg"
                   className={cn(
                     "w-full sm:w-auto relative group",
-                    "h-11 sm:h-12 md:h-14 text-sm sm:text-base md:text-lg px-6 sm:px-8 md:px-10",
+                    "h-11 sm:h-12 text-sm sm:text-base px-6 sm:px-8",
                     "rounded-full transition-all duration-300",
                     "bg-white/80 dark:bg-white/10 backdrop-blur-md",
                     "border border-black/[0.08] dark:border-white/[0.08]",
                     "text-foreground dark:text-white",
                     "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
                     "hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
-                    "hover:translate-y-[-1px]",
                     "hover:bg-white/90 dark:hover:bg-white/20",
-                    "active:translate-y-[1px]",
-                    "active:shadow-none"
+                    "hover:scale-[1.02] active:scale-[0.98]"
                   )}
                   onClick={() => window.open('https://wa.me/905360344866', '_blank')}
                 >
                   <span className="flex items-center justify-center gap-2">
                     {t.home.hero.cta.whatsapp}
-                    <Play className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                    <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-white/10 flex items-center justify-center">
+                      <Play className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                    </div>
                   </span>
                 </Button>
               </div>
             </div>
 
             {/* Right Content - Stats */}
-            <div className="hidden lg:block lg:col-span-3">
-              <div className="grid gap-4 mt-8 lg:mt-0 relative">
-                {stats.map((stat, index) => (
-                  <div
-                    key={stat.label}
-                    className="relative"
-                    onMouseEnter={() => setHoveredStat(index)}
-                    onMouseLeave={() => setHoveredStat(null)}
-                  >
-                    <div className={cn(
-                      "relative p-5 rounded-2xl transition-all duration-300 group",
-                      "bg-white/80 dark:bg-white/5 backdrop-blur-md",
-                      "border border-black/[0.08] dark:border-white/[0.08]",
-                      "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
-                      hoveredStat === index ? "scale-[1.02]" : "hover:scale-[1.01]",
-                      hoveredStat === index ? "shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_16px_rgba(255,255,255,0.1)]" : ""
-                    )}>
-                      <div className="flex items-center gap-x-5">
-                        <div className={cn(
-                          "flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center",
-                          "bg-white dark:bg-white/10",
-                          "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
-                          hoveredStat === index ? stat.iconColor : "text-primary dark:text-white"
-                        )}>
-                          <stat.icon className="w-5 h-5 transition-colors" />
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold text-primary dark:text-white">
-                            {stat.value}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {stat.label}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="relative lg:pl-8 hidden lg:block">
+              {/* Decorative Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 dark:from-primary/10 dark:to-secondary/10 rounded-2xl transform rotate-1 blur-lg"></div>
+              
+              {/* Success Stories Slider */}
+              <div className="relative bg-white/90 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-black/[0.08] dark:border-white/[0.08] shadow-lg overflow-hidden">
+                <SuccessStoriesSlider />
               </div>
             </div>
+          </div>
 
-            {/* Mobile Stats */}
-            <div className="mt-8 grid grid-cols-2 gap-2 lg:hidden">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className={cn(
-                    "relative overflow-hidden rounded-xl p-3 transition-all duration-300",
-                    "bg-white/80 dark:bg-white/5 backdrop-blur-md",
-                    "border border-black/[0.08] dark:border-white/[0.08]",
-                    "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
-                    "hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
-                    "hover:scale-[1.02]"
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-                        "bg-white dark:bg-white/10",
-                        "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
-                        stat.iconColor
-                      )}
-                    >
-                      <stat.icon className="w-4 h-4" />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
+            {stats.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="group relative"
+                onMouseEnter={() => setHoveredStat(index)}
+                onMouseLeave={() => setHoveredStat(null)}
+              >
+                <div className={cn(
+                  "relative overflow-hidden rounded-xl p-4 transition-all duration-300",
+                  "bg-white/80 dark:bg-white/5 backdrop-blur-md",
+                  "border border-black/[0.08] dark:border-white/[0.08]",
+                  "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
+                  hoveredStat === index ? "scale-[1.02] shadow-lg" : "hover:scale-[1.01]"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center",
+                      "bg-white dark:bg-white/10",
+                      "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]"
+                    )}>
+                      <stat.icon className={cn(
+                        "w-5 h-5 transition-colors",
+                        hoveredStat === index ? stat.iconColor : "text-primary dark:text-white"
+                      )} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-lg sm:text-xl font-bold text-primary dark:text-white leading-none mb-0.5">
+                    <div>
+                      <div className="text-xl font-bold text-primary dark:text-white">
                         {stat.value}
                       </div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-white/60 font-medium leading-tight line-clamp-2">
+                      <p className="text-sm text-muted-foreground">
                         {stat.label}
                       </p>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* Trust Badges */}
           <div className="mt-12 lg:mt-16">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {platforms.map((platform) => (
                 <a
                   key={platform.id}
@@ -411,5 +392,5 @@ export function HeroSection() {
         </div>
       </div>
     </div>
-  )
+  );
 }

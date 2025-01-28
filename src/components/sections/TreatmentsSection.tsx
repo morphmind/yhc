@@ -206,18 +206,18 @@ export function TreatmentsSection() {
                   <a
                     key={item.id}
                     href={item.path}
-                    className="group relative block"
+                    className="group relative block h-full"
                     onMouseEnter={() => setHoveredItem(item.id)}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
                     <div className={cn(
-                      "relative overflow-hidden rounded-2xl transition-all duration-500",
+                      "relative overflow-hidden rounded-2xl h-full transition-all duration-300",
                       "bg-white/80 dark:bg-white/5 backdrop-blur-md",
                       "border border-black/[0.08] dark:border-white/[0.08]",
                       "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
                       hoveredItem === item.id ? "scale-[1.02] shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_16px_rgba(255,255,255,0.1)]" : "hover:scale-[1.01]"
                     )}>
-                      <div className="p-5">
+                      <div className="p-5 h-full flex flex-col">
                         {/* Icon and Title */}
                         <div className="flex items-center gap-3 mb-3">
                           <div className={cn(
@@ -235,7 +235,7 @@ export function TreatmentsSection() {
                         </div>
                         
                         {/* Description */}
-                        <p className="text-sm text-foreground/60 dark:text-white/60 mb-3 line-clamp-2">
+                        <p className="text-sm text-foreground/60 dark:text-white/60 mb-3 flex-1">
                           {techData?.description}
                         </p>
                         

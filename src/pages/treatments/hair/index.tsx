@@ -12,11 +12,66 @@ import { MobileRecoveryContent } from './components/MobileRecoveryContent';
 import { HeroSection } from './components/HeroSection';
 import { MobileCTASection } from './components/MobileCTASection';
 import { DesktopCTASection } from './components/DesktopCTASection';
+import { Stethoscope, Microscope, Heart, Shield } from 'lucide-react';
 
 export default function HairTransplantPage() {
   const { t } = useTranslation();
   const { selectedCurrency, updateCurrency } = useCurrency();
   const [activeTab, setActiveTab] = React.useState('overview');
+  const [activeSection, setActiveSection] = React.useState('overview');
+
+  // Navigation sections
+  const navigationSections = React.useMemo(() => [
+    { id: 'overview', icon: Stethoscope, label: t.hairTransplant.overview.title },
+    { id: 'techniques', icon: Microscope, label: t.hairTransplant.techniques.title },
+    { id: 'benefits', icon: Heart, label: t.hairTransplant.benefits.title },
+    { id: 'recovery', icon: Shield, label: t.hairTransplant.recovery.title }
+  ], [t.hairTransplant]);
+
+  // Get all sections
+  const sections = ['overview', 'techniques', 'benefits', 'recovery'];
+
+  // Intersection Observer for sections
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // Only update if section is more than 50% visible
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+        rootMargin: '-80px 0px -80px 0px' // Account for header
+      }
+    );
+
+    // Observe sections
+    const sectionElements = sections.map(id => document.getElementById(id)).filter(Boolean);
+    sectionElements.forEach(section => observer.observe(section!));
+
+    return () => {
+      sectionElements.forEach(section => observer.unobserve(section!));
+    };
+  }, [sections]);
+
+  // Handle section change
+  const handleSectionChange = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const headerOffset = 88; // Header height
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Update meta tags
   React.useEffect(() => {
@@ -44,6 +99,10 @@ export default function HairTransplantPage() {
       {/* Content Section */}
       <div className="relative py-24 overflow-hidden">
         <div className="container relative z-10">
+          {/* Hide scroll text on mobile */}
+          <div className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2 text-sm text-foreground/60 dark:text-white/60">
+            {t.hairTransplant.hero.scrollText}
+          </div>
           <div className="lg:hidden">
             <MobileContentNavigation
               activeSection={activeTab}

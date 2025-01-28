@@ -19,7 +19,7 @@ export function ContentSection() {
   const [hoveredBenefit, setHoveredBenefit] = React.useState<number | null>(null);
 
   return (
-    <div className="relative py-24 overflow-hidden" id="content">
+    <div className="relative py-24 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(120,119,198,0.1),transparent_50%),radial-gradient(circle_at_0%_100%,rgba(74,86,226,0.15),transparent_50%)] dark:bg-[radial-gradient(circle_at_100%_0%,rgba(120,119,198,0.2),transparent_50%),radial-gradient(circle_at_0%_100%,rgba(74,86,226,0.2),transparent_50%)]" />
@@ -32,7 +32,7 @@ export function ContentSection() {
 
       <div className="container relative z-10">
         {/* Understanding Afro Hair Section */}
-        <div className="max-w-3xl mb-12">
+        <div id="overview" className="max-w-3xl mb-24 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.04)] mb-8 transition-all duration-300 hover:scale-[1.02]">
             <Sparkles className="w-4 h-4 text-primary dark:text-white" />
             <span className="text-sm font-medium text-foreground/80 dark:text-white/80">{t.afroHairTransplant.overview.title}</span>
@@ -136,7 +136,7 @@ export function ContentSection() {
         </div>
 
         {/* Techniques Section */}
-        <div className="max-w-3xl mb-12">
+        <div id="techniques" className="max-w-3xl mx-auto text-center mb-24 pt-24">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.04)] mb-8 transition-all duration-300 hover:scale-[1.02]">
             <Microscope className="w-4 h-4 text-primary dark:text-white" />
             <span className="text-sm font-medium text-foreground/80 dark:text-white/80">{t.afroHairTransplant.techniques.title}</span>
@@ -201,7 +201,7 @@ export function ContentSection() {
         </div>
 
         {/* Benefits Section */}
-        <div className="max-w-3xl mx-auto text-center mb-12">
+        <div id="benefits" className="max-w-3xl mx-auto text-center mb-24 pt-24">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.04)] mb-8 transition-all duration-300 hover:scale-[1.02]">
             <Heart className="w-4 h-4 text-primary dark:text-white" />
             <span className="text-sm font-medium text-foreground/80 dark:text-white/80">{t.afroHairTransplant.benefits.title}</span>
@@ -251,6 +251,78 @@ export function ContentSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Recovery Section */}
+        <div id="recovery" className="max-w-3xl mx-auto text-center mb-12 pt-24">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/[0.08] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(255,255,255,0.04)] mb-8 transition-all duration-300 hover:scale-[1.02]">
+            <Shield className="w-4 h-4 text-primary dark:text-white" />
+            <span className="text-sm font-medium text-foreground/80 dark:text-white/80">{t.afroHairTransplant.recovery.title}</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl !leading-[1.2] font-bold text-foreground dark:text-white mb-4">{t.afroHairTransplant.recovery.title}</h2>
+          <p className="text-lg text-foreground/60 dark:text-white/60 leading-relaxed max-w-2xl mx-auto">
+            {t.afroHairTransplant.recovery.description}
+          </p>
+        </div>
+
+        {/* Recovery Timeline */}
+        <div className="relative px-4 sm:px-0 mb-24">
+          {/* Timeline Line */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent hidden lg:block" />
+
+          {/* Timeline Items */}
+          <div className="space-y-12">
+            {t.afroHairTransplant.recovery.timeline.map((period, index) => (
+              <div
+                key={index}
+                className="group relative"
+              >
+                {/* Timeline Dot */}
+                <div className="absolute left-1/2 top-8 -translate-x-1/2 hidden lg:block">
+                  <div className="relative">
+                    <div className="w-4 h-4 rounded-full bg-primary/20 dark:bg-primary/40 animate-ping" />
+                    <div className="absolute inset-0 w-4 h-4 rounded-full bg-primary/40 dark:bg-primary/60" />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 items-center">
+                  {/* Left Side - Day */}
+                  <div className={cn(
+                    "relative overflow-hidden rounded-2xl transition-all duration-300 p-6 text-center lg:text-right",
+                    "bg-white/80 dark:bg-white/5 backdrop-blur-md",
+                    "border border-black/[0.08] dark:border-white/[0.08]",
+                    "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
+                    "hover:scale-[1.02] hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
+                    "lg:translate-x-4 group-hover:translate-x-0 transition-transform"
+                  )}>
+                    <div className="relative">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent mb-2">
+                        {period.day}
+                      </div>
+                      <div className="w-12 h-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full mx-auto lg:ml-auto lg:mr-0" />
+                    </div>
+                  </div>
+
+                  {/* Right Side - Description */}
+                  <div className={cn(
+                    "relative overflow-hidden rounded-2xl transition-all duration-300 p-6",
+                    "bg-white/80 dark:bg-white/5 backdrop-blur-md",
+                    "border border-black/[0.08] dark:border-white/[0.08]",
+                    "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]",
+                    "hover:scale-[1.02] hover:shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_8px_16px_rgba(255,255,255,0.1)]",
+                    "lg:-translate-x-4 group-hover:translate-x-0 transition-transform"
+                  )}>
+                    <div className="relative">
+                      <p className="text-base text-foreground/80 dark:text-white/80 leading-relaxed">
+                        {period.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

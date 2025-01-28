@@ -34,9 +34,9 @@ function getNavigationItems(t: any) {
           children: [
             { id: 'hair', href: '/treatments/hair', label: t.header.navigation.hairTransplant.treatments.hair },
             { id: 'afro', href: '/treatments/afro', label: t.header.navigation.hairTransplant.treatments.afro },
-            { id: 'women', href: '#', label: t.header.navigation.hairTransplant.treatments.women },
-            { id: 'beard', href: '#', label: t.header.navigation.hairTransplant.treatments.beard },
-            { id: 'eyebrow', href: '#', label: t.header.navigation.hairTransplant.treatments.eyebrow },
+            { id: 'women', href: '/treatments/women', label: t.header.navigation.hairTransplant.treatments.women },
+            { id: 'beard', href: '/treatments/beard', label: t.header.navigation.hairTransplant.treatments.beard },
+            { id: 'eyebrow', href: '/treatments/eyebrow', label: t.header.navigation.hairTransplant.treatments.eyebrow },
           ]
         },
         {
@@ -44,8 +44,7 @@ function getNavigationItems(t: any) {
           href: '#',
           label: t.header.navigation.hairTransplant.technologies.title,
           children: [
-            { id: 'micro-sapphire', href: '#', label: t.header.navigation.hairTransplant.technologies.microSapphire },
-            { id: 'dhi', href: '#', label: t.header.navigation.hairTransplant.technologies.dhi },
+            { id: 'micro-sapphire', href: '/technologies/micro-sapphire', label: t.header.navigation.hairTransplant.technologies.microSapphire },
             { id: 'sapphire-fue', href: '#', label: t.header.navigation.hairTransplant.technologies.sapphireFue },
             { id: 'needle-free', href: '#', label: t.header.navigation.hairTransplant.technologies.needleFree },
           ]
@@ -73,7 +72,7 @@ function getNavigationItems(t: any) {
     },
     { id: 'before-after', href: '/before-after', label: t.header.navigation.beforeAfter },
     { id: 'price', href: '/price', label: t.header.navigation.price },
-    { id: 'contact', href: '/contact', label: t.header.navigation.contact },
+    { id: 'contact', href: '/contact', label: t.header.navigation.contact }
   ];
 }
 
@@ -126,9 +125,17 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                   <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="bg-white/80 dark:bg-black/80 backdrop-blur-md text-foreground dark:text-white p-3 rounded-xl shadow-[0_8px_16px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_16px_rgba(255,255,255,0.08)] text-xs whitespace-nowrap border border-black/[0.08] dark:border-white/[0.08]">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{weather.icon}</span>
+                        <div className={cn(
+                          "w-10 h-10 rounded-2xl flex items-center justify-center",
+                          "bg-white dark:bg-white/10",
+                          "shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]"
+                        )}>
+                          <span className="text-2xl">{weather.icon}</span>
+                        </div>
                         <div className="space-y-0.5">
-                          <p className="font-medium">{weather.condition}</p>
+                          <span className="font-semibold text-[15px]">
+                            {weather.condition}
+                          </span>
                           <div className="flex items-center gap-3 text-foreground/60 dark:text-white/60">
                             <span className="flex items-center gap-1">
                               <span>💧</span> {weather.humidity}%
@@ -239,7 +246,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                   <a
                     href={item.href}
                     className={cn(
-                      "text-sm font-medium tracking-tight",
+                      "text-[15px] font-semibold tracking-tight",
                       "text-foreground/80 dark:text-white/80",
                       "hover:text-foreground dark:hover:text-white",
                       "transition-all duration-300",
@@ -269,7 +276,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                             <a
                               href={child.href}
                               className={cn(
-                                "block px-4 py-2.5 text-sm font-medium",
+                                "block px-4 py-2.5 text-[15px] font-semibold",
                                 "text-foreground/80 dark:text-white/80",
                                 "hover:text-foreground dark:hover:text-white",
                                 "rounded-xl transition-all duration-300",
@@ -297,7 +304,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                                       key={subChild.id}
                                       href={subChild.href}
                                       className={cn(
-                                        "block px-4 py-2.5 text-sm",
+                                        "block px-4 py-2.5 text-[14px] font-medium",
                                         "text-foreground/60 dark:text-white/60",
                                         "hover:text-foreground dark:hover:text-white",
                                         "rounded-xl transition-all duration-300",
@@ -385,7 +392,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                             }
                           }}
                           className={cn(
-                            "w-full text-left text-lg font-medium",
+                            "w-full text-left text-[15px] font-semibold",
                             "text-foreground/80 dark:text-white/80",
                             "transition-colors hover:text-foreground dark:hover:text-white",
                             "relative pl-4",
@@ -408,7 +415,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                                 <a
                                   href={child.href}
                                   className={cn(
-                                    "block text-base font-medium",
+                                    "block text-[15px] font-semibold",
                                     "text-foreground/60 dark:text-white/60",
                                     "hover:text-foreground dark:hover:text-white",
                                     "transition-colors pl-4 relative",
@@ -430,7 +437,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                                         key={subChild.id}
                                         href={subChild.href}
                                         className={cn(
-                                          "block text-sm font-normal",
+                                          "block text-[14px] font-medium",
                                           "text-foreground/50 dark:text-white/50",
                                           "hover:text-foreground dark:hover:text-white",
                                           "transition-colors pl-4 relative",
@@ -487,7 +494,7 @@ export default function Header({ selectedCurrency, onCurrencyChange }: HeaderPro
                       </a>
                     </div>
                     
-                    {/* Social Links */}
+                                {/* Social Links */}
                     <div className="flex items-center gap-4">
                       <a href="https://instagram.com/yakisiklihairclinic" target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
                         <Instagram className="h-4 w-4" />

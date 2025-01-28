@@ -28,8 +28,10 @@ export function GallerySection() {
   const { currentLocale } = useContext(LocaleContext)
 
   const [cases, setCases] = React.useState<any[]>([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const maxRetries = 3
 
   const [activeFilter, setActiveFilter] = useState('all')
   const [hoveredCase, setHoveredCase] = useState<number | null>(null)
@@ -42,10 +44,6 @@ export function GallerySection() {
 
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 4
-
-  // Add retry mechanism for fetching stories
-  const [retryCount, setRetryCount] = useState(0)
-  const maxRetries = 3
 
   // Filtre listesi (örnek simgeler)
   const filters = [
@@ -101,7 +99,7 @@ export function GallerySection() {
   const fetchStories = async () => {
     try {
       if (retryCount >= maxRetries) {
-        setError('Failed to load success stories after multiple attempts. Please try again later.');
+        setError(new Error('Failed to load success stories after multiple attempts. Please try again later.'));
         setLoading(false);
         return;
       }
@@ -140,9 +138,10 @@ export function GallerySection() {
         })) || []
 
       setCases(transformedData)
+      setError(null)
     } catch (err: any) {
       console.error('Error fetching stories:', err)
-      setError('Unable to load success stories. Please check your connection and try again.')
+      setError(new Error('Unable to load success stories. Please check your connection and try again.'))
       setCases([])
     } finally {
       setLoading(false)
@@ -269,6 +268,53 @@ export function GallerySection() {
     }
   }, [draggingId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full border-2 border-primary dark:border-white border-t-transparent animate-spin" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 blur-lg animate-pulse" />
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[200px] gap-4">
+        <div className="text-center text-red-500 dark:text-red-400 font-medium">
+          <p className="mb-2">{error.message}</p>
+          <p className="text-sm text-muted-foreground">
+            {retryCount > 0 ? `Retry attempt ${retryCount} of ${maxRetries}` : ''}
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setRetryCount(0)
+            fetchStories()
+          }}
+          className="gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Try Again
+        </Button>
+      </div>
+    )
+  }
+
+  // No data state
+  if (cases.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground">
+        <p>No success stories available yet.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="relative py-24 overflow-hidden">
       {/* Background Pattern */}
@@ -366,204 +412,170 @@ export function GallerySection() {
           ))}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center min-h-[200px]">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full border-2 border-primary dark:border-white border-t-transparent animate-spin" />
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 blur-lg animate-pulse" />
-            </div>
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center min-h-[200px] gap-4">
-            <div className="text-center text-red-500 dark:text-red-400 font-medium">
-              <p className="mb-2">{error}</p>
-              <p className="text-sm text-muted-foreground">
-                {retryCount > 0 ? `Retry attempt ${retryCount} of ${maxRetries}` : ''}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setRetryCount(0)
-                fetchStories()
-              }}
-              className="gap-2"
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {paginatedCases.map((item) => (
+            <div
+              key={item.id}
+              className="group relative"
+              onMouseEnter={() => setHoveredCase(item.id)}
+              onMouseLeave={() => setHoveredCase(null)}
             >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </Button>
-          </div>
-        ) : cases.length === 0 ? (
-          <div className="text-center text-muted-foreground">
-            <p>Henüz başarı hikayesi eklenmemiş.</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            {paginatedCases.map((item) => (
               <div
-                key={item.id}
-                className="group relative"
-                onMouseEnter={() => setHoveredCase(item.id)}
-                onMouseLeave={() => setHoveredCase(null)}
+                className={cn(
+                  'relative overflow-hidden rounded-2xl transition-all duration-500',
+                  'bg-white/80 dark:bg-white/5 backdrop-blur-md',
+                  'border border-black/[0.08] dark:border-white/[0.08]',
+                  'shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]',
+                  hoveredCase === item.id
+                    ? 'scale-[1.02] shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_16px_rgba(255,255,255,0.1)]'
+                    : 'hover:scale-[1.01]'
+                )}
               >
+                {/* Before/After Slider */}
                 <div
-                  className={cn(
-                    'relative overflow-hidden rounded-2xl transition-all duration-500',
-                    'bg-white/80 dark:bg-white/5 backdrop-blur-md',
-                    'border border-black/[0.08] dark:border-white/[0.08]',
-                    'shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(255,255,255,0.05)]',
-                    hoveredCase === item.id
-                      ? 'scale-[1.02] shadow-[0_8px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_16px_rgba(255,255,255,0.1)]'
-                      : 'hover:scale-[1.01]'
-                  )}
+                  ref={(el) => (sliderRefs.current[item.id] = el)}
+                  className="relative aspect-[4/3]"
+                  onMouseDown={(e) => handleDragStart(e, item.id)}
+                  onTouchStart={(e) => handleDragStart(e, item.id)}
+                  style={{ touchAction: 'none', overflow: 'hidden' }}
                 >
-                  {/* Before/After Slider */}
+                  {/* Before Image */}
+                  <div className="absolute inset-0">
+                    <img
+                      src={item.beforeImage}
+                      alt="Before"
+                      className="w-full h-full object-cover"
+                      draggable="false"
+                    />
+                  </div>
+
+                  {/* After Image */}
                   <div
-                    ref={(el) => (sliderRefs.current[item.id] = el)}
-                    className="relative aspect-[4/3]"
-                    onMouseDown={(e) => handleDragStart(e, item.id)}
-                    onTouchStart={(e) => handleDragStart(e, item.id)}
-                    style={{ touchAction: 'none', overflow: 'hidden' }}
+                    data-after-image
+                    className="absolute inset-0 overflow-hidden transition-none"
+                    style={{
+                      clipPath: `inset(0 ${
+                        100 - (sliderPositions[item.id] ?? 50)
+                      }% 0 0)`,
+                    }}
                   >
-                    {/* Before Image */}
-                    <div className="absolute inset-0">
-                      <img
-                        src={item.beforeImage}
-                        alt="Before"
-                        className="w-full h-full object-cover"
-                        draggable="false"
-                      />
-                    </div>
+                    <img
+                      src={item.afterImage}
+                      alt="After"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      draggable="false"
+                    />
+                  </div>
 
-                    {/* After Image */}
-                    <div
-                      data-after-image
-                      className="absolute inset-0 overflow-hidden transition-none"
-                      style={{
-                        clipPath: `inset(0 ${
-                          100 - (sliderPositions[item.id] ?? 50)
-                        }% 0 0)`,
-                      }}
-                    >
-                      <img
-                        src={item.afterImage}
-                        alt="After"
-                        className="absolute inset-0 w-full h-full object-cover"
-                        draggable="false"
-                      />
-                    </div>
-
-                    {/* Slider Handle */}
-                    <div
-                      data-slider-handle
-                      className="absolute top-0 bottom-0 w-[2px] bg-white z-10 transition-none cursor-ew-resize"
-                      style={{ left: `${sliderPositions[item.id] ?? 50}%` }}
-                    >
-                      <div
-                        className={cn(
-                          'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',
-                          'w-12 h-12 rounded-full',
-                          'bg-white/90 backdrop-blur-sm',
-                          'shadow-[0_0_0_4px_rgba(255,255,255,0.3),0_4px_16px_rgba(0,0,0,0.2)]',
-                          'flex items-center justify-center',
-                          'transition-all duration-300',
-                          draggingId === item.id
-                            ? 'scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
-                            : ''
-                        )}
-                      >
-                        <div className="flex items-center gap-1">
-                          <ArrowLeft className="w-4 h-4 text-primary" />
-                          <ArrowRight className="w-4 h-4 text-primary" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Labels */}
-                    <div className="absolute top-6 left-6 z-10">
-                      <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
-                        {t.treatments.gallery.labels.before}
-                      </div>
-                    </div>
-                    <div className="absolute top-6 right-6 z-10">
-                      <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
-                        {t.treatments.gallery.labels.after}
-                      </div>
-                    </div>
-
-                    {/* Info Overlay */}
+                  {/* Slider Handle */}
+                  <div
+                    data-slider-handle
+                    className="absolute top-0 bottom-0 w-[2px] bg-white z-10 transition-none cursor-ew-resize"
+                    style={{ left: `${sliderPositions[item.id] ?? 50}%` }}
+                  >
                     <div
                       className={cn(
-                        'absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent',
-                        'transition-opacity duration-300',
-                        hoveredCase === item.id ? 'opacity-100' : 'opacity-0'
+                        'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',
+                        'w-12 h-12 rounded-full',
+                        'bg-white/90 backdrop-blur-sm',
+                        'shadow-[0_0_0_4px_rgba(255,255,255,0.3),0_4px_16px_rgba(0,0,0,0.2)]',
+                        'flex items-center justify-center',
+                        'transition-all duration-300',
+                        draggingId === item.id
+                          ? 'scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]'
+                          : ''
                       )}
                     >
-                      <div className="flex items-center justify-between text-white">
-                        <div>
-                          <div className="text-sm font-medium mb-1">
-                            {
-                              t.treatments.gallery.timeframes[
-                                item.timeframe as keyof typeof t.treatments.gallery.timeframes
-                              ]
-                            }
-                          </div>
-                          <div className="text-xs text-white/80">
-                            {item.grafts} Grafts • Age {item.age}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: item.testimonial.rating }).map(
-                            (_, i) => (
-                              <Star
-                                key={i}
-                                className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400"
-                              />
-                            )
-                          )}
-                        </div>
+                      <div className="flex items-center gap-1">
+                        <ArrowLeft className="w-4 h-4 text-primary" />
+                        <ArrowRight className="w-4 h-4 text-primary" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Testimonial */}
-                  <div className="p-4 border-t border-black/[0.08] dark:border-white/[0.08]">
-                    <div className="flex items-start gap-3">
-                      <Quote className="w-8 h-8 text-primary/20 dark:text-white/20" />
+                  {/* Labels */}
+                  <div className="absolute top-6 left-6 z-10">
+                    <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
+                      {t.treatments.gallery.labels.before}
+                    </div>
+                  </div>
+                  <div className="absolute top-6 right-6 z-10">
+                    <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm text-sm font-medium text-white border border-white/20 shadow-lg">
+                      {t.treatments.gallery.labels.after}
+                    </div>
+                  </div>
+
+                  {/* Info Overlay */}
+                  <div
+                    className={cn(
+                      'absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent',
+                      'transition-opacity duration-300',
+                      hoveredCase === item.id ? 'opacity-100' : 'opacity-0'
+                    )}
+                  >
+                    <div className="flex items-center justify-between text-white">
                       <div>
-                        <p className="text-sm text-foreground/60 dark:text-white/60 italic mb-2">
-                          &quot;{item.testimonial.text}&quot;
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-foreground dark:text-white">
-                              {item.testimonial.name}
-                            </span>
-                            <span className="text-sm text-foreground/60 dark:text-white/60">
-                              {item.testimonial.country}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2 hover:bg-black/5 dark:hover:bg-white/5"
-                            onClick={() => setActiveVideo(item.testimonial.videoId)}
-                          >
-                            <Play className="w-3.5 h-3.5" />
-                            <span className="text-xs">
-                              {t.treatments.gallery.labels.watchStory}
-                            </span>
-                          </Button>
+                        <div className="text-sm font-medium mb-1">
+                          {
+                            t.treatments.gallery.timeframes[
+                              item.timeframe as keyof typeof t.treatments.gallery.timeframes
+                            ]
+                          }
                         </div>
+                        <div className="text-xs text-white/80">
+                          {item.grafts} Grafts • Age {item.age}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: item.testimonial.rating }).map(
+                          (_, i) => (
+                            <Star
+                              key={i}
+                              className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400"
+                            />
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Testimonial */}
+                <div className="p-4 border-t border-black/[0.08] dark:border-white/[0.08]">
+                  <div className="flex items-start gap-3">
+                    <Quote className="w-8 h-8 text-primary/20 dark:text-white/20" />
+                    <div>
+                      <p className="text-sm text-foreground/60 dark:text-white/60 italic mb-2">
+                        &quot;{item.testimonial.text}&quot;
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground dark:text-white">
+                            {item.testimonial.name}
+                          </span>
+                          <span className="text-sm text-foreground/60 dark:text-white/60">
+                            {item.testimonial.country}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-2 hover:bg-black/5 dark:hover:bg-white/5"
+                          onClick={() => setActiveVideo(item.testimonial.videoId)}
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                          <span className="text-xs">
+                            {t.treatments.gallery.labels.watchStory}
+                          </span>
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
 
         {/* Pagination Controls */}
         {totalPages > 1 && (

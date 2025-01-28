@@ -14,6 +14,7 @@ export function TabContent({ activeTab }: TabContentProps) {
     <div className="space-y-12">
       {/* Overview Tab */}
       {activeTab === 'overview' && (
+        <div id="overview">
         <div className="space-y-12">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h2 className="text-4xl sm:text-5xl !leading-[1.2] font-bold text-foreground dark:text-white mb-4">
@@ -123,10 +124,12 @@ export function TabContent({ activeTab }: TabContentProps) {
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* Techniques Tab */}
       {activeTab === 'techniques' && (
+        <div id="techniques">
         <div className="space-y-12">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl !leading-[1.2] font-bold text-foreground dark:text-white mb-4">
@@ -187,10 +190,12 @@ export function TabContent({ activeTab }: TabContentProps) {
             ))}
           </div>
         </div>
+        </div>
       )}
 
       {/* Benefits Tab */}
       {activeTab === 'benefits' && (
+        <div id="benefits">
         <div className="space-y-12">
           {/* Section Header */}
           <div className="max-w-3xl mx-auto text-center mb-12">
@@ -298,10 +303,12 @@ export function TabContent({ activeTab }: TabContentProps) {
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* Recovery Tab */}
       {activeTab === 'recovery' && (
+        <div id="recovery">
         <div className="space-y-12">
           {/* Section Header */}
           <div className="max-w-3xl mx-auto text-center mb-12">
@@ -372,6 +379,7 @@ export function TabContent({ activeTab }: TabContentProps) {
               ))}
             </div>
           </div>
+        </div>
         </div>
       )}
     </div>

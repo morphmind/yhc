@@ -21,6 +21,7 @@ import { useCurrency } from './hooks/useCurrency';
 import { HeroSection } from './components/sections/HeroSection';
 import { WhyUsSection } from './components/sections/WhyUsSection';
 import { TreatmentsSection } from './components/sections/TreatmentsSection';
+import SapphireFuePage from './pages/tech/sapphirefue';
 import { PriceCalculator } from './components/sections/PriceCalculator';
 import { PatientExperienceSection } from './components/sections/PatientExperienceSection';
 import { GallerySection } from './components/sections/GallerySection';
@@ -112,6 +113,7 @@ function App() {
             <Route path="/hair-analysis/success" element={<AnalysisSuccess />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/technologies/micro-sapphire" element={<MicroSapphirePage />} />
+            <Route path="/technologies/sapphire-fue" element={<SapphireFuePage />} />
             <Route path="/treatments/hair" element={<HairTransplantPage />} />
             <Route path="/treatments/eyebrow" element={<EyebrowTransplantPage />} />
             <Route path="/treatments/beard" element={<BeardTransplantPage />} />

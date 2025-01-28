@@ -45,7 +45,7 @@ function getNavigationItems(t: any) {
           label: t.header.navigation.hairTransplant.technologies.title,
           children: [
             { id: 'micro-sapphire', href: '/technologies/micro-sapphire', label: t.header.navigation.hairTransplant.technologies.microSapphire },
-            { id: 'sapphire-fue', href: '#', label: t.header.navigation.hairTransplant.technologies.sapphireFue },
+            { id: 'sapphire-fue', href: '/technologies/sapphirefue', label: t.header.navigation.hairTransplant.technologies.sapphireFue },
             { id: 'needle-free', href: '#', label: t.header.navigation.hairTransplant.technologies.needleFree },
           ]
         },
